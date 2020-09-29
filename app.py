@@ -48,6 +48,18 @@ def callback():
 
     return 'OK'
 
+static_tmp_path = os.path.join(os.path.dirname(__file__), 'static', 'tmp')
+
+# function for create tmp dir for download content
+def make_static_tmp_dir():
+    try:
+        os.makedirs(static_tmp_path)
+    except OSError as exc:
+        if exc.errno == errno.EEXIST and os.path.isdir(static_tmp_path):
+            pass
+        else:
+            raise
+
 @handler.add(MessageEvent, message=ImageMessage)
 def handle_msg_sticker(event):
     '''
