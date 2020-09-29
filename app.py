@@ -23,7 +23,7 @@ from linebot.models import (
 import os
 import json
 from model import *
-import tempfile
+import tempfile, errno 
 from imgurpython import ImgurClient
 from config import client_id, client_secret, album_id, access_token, refresh_token, line_bot_api, handler
 import sys
@@ -65,6 +65,7 @@ def handle_msg_sticker(event):
     '''
         ImageMessage auto upload to imgur and reply image url  
     '''
+    make_static_tmp_dir()
     if isinstance(event.message, ImageMessage):
         ext = 'jpg'
     message_content = line_bot_api.get_message_content(event.message.id)
