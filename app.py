@@ -1,6 +1,10 @@
+import os
+import json
+import random
 import urllib
 from datetime import datetime
 
+import requests
 from dateutil import parser
 from flask import Flask, request, abort
 from linebot.exceptions import InvalidSignatureError
@@ -53,8 +57,6 @@ from linebot.models import (
     QuickReplyButton,
     CarouselContainer,
 )
-import os
-import json
 
 # from model import *
 import tempfile
@@ -169,7 +171,7 @@ def handle_msg_sticker(event):
 def handle_text_msg(event):
     app.logger.warning(event)
     app.logger.warning(event.message.text)
-    if event.message.text == "天氣":
+    if event.message.text == "天氣" or event.message.text.lower().find("weather") > -1:
         user_id = os.getenv("user_id", "")
         token = os.getenv("token", "")
         url = (
@@ -225,8 +227,17 @@ def handle_text_msg(event):
             FlexSendMessage(alt_text="WeatherForcast", contents=flex),
         )
 
-
-
+    elif event.message.text.lower().find("tarot") > -1:
+        data = random.randint(1, 49)
+        r = requests.get(f"http://127.0.0.1:8000/akasha/{data}/")
+        if r.status_code == 200:
+            resp = r.json()
+            img_url = resp.get("link")
+            app.logger.warning(img_url)
+            line_bot_api.reply_message(
+                event.reply_token,
+                ImageSendMessage(original_content_url=img_url, preview_image_url=img_url)
+            )
 
 
 if __name__ == "__main__":
