@@ -1,5 +1,7 @@
+import urllib
 from datetime import datetime
 
+from dateutil import parser
 from flask import Flask, request, abort
 from linebot.exceptions import InvalidSignatureError
 from linebot.models import (
@@ -59,6 +61,7 @@ import tempfile
 import errno
 from imgur_python import Imgur
 
+import weather
 from config import (
     client_id,
     client_secret,
@@ -160,6 +163,69 @@ def handle_msg_sticker(event):
             event.reply_token,
             TextSendMessage(text="APIServerError: status={}".format(r.get("status", "None"))),
         )
+
+
+@handler.add(MessageEvent, message=TextMessage)
+def handle_text_msg(event):
+    app.logger.warning(event)
+    app.logger.warning(event.message.text)
+    if event.message.text == "天氣":
+        user_id = os.getenv("user_id", "")
+        token = os.getenv("token", "")
+        url = (
+                "https://opendata.cwb.gov.tw/fileapi/v1/opendataapi/F-C0032-001?Authorization="
+                + token
+                + "&format=JSON"
+        )
+        with urllib.request.urlopen(url) as url:
+            data = json.loads(url.read().decode())
+        location = data["cwbopendata"]["dataset"]["location"]
+        Taipei_weather = location[1]
+        weather_elements = location[1]["weatherElement"]
+        Wx = weather_elements[0]
+        MaxT = weather_elements[1]
+        MinT = weather_elements[2]
+        Time_start, Time_end = [], []
+        wx = []
+        for i in range(len(Wx["time"])):
+            t_start = Wx["time"][i]["startTime"]
+            dt_start = parser.parse(t_start)
+            Time_start.append(dt_start.strftime("%m/%d %H:%M"))
+
+        maxT, minT = "", ""
+        temper = []
+        for i in range(len(Wx["time"])):
+            if i == len(Wx["time"]) - 1:
+                break
+            wx.append(Wx["time"][i]["parameter"]["parameterName"])
+            maxT = MaxT["time"][i]["parameter"]["parameterName"]
+            minT = MinT["time"][i]["parameter"]["parameterName"]
+            temper.append(minT + "°C" + " ~ " + maxT + "°C")
+        url2 = (
+                "https://opendata.cwb.gov.tw/fileapi/v1/opendataapi/F-C0032-010?Authorization="
+                + token
+                + "&format=JSON"
+        )
+        with urllib.request.urlopen(url2) as url:
+            data = json.loads(url.read().decode())
+        location = data["cwbopendata"]["dataset"]["location"]["locationName"]
+        weather_helper = data["cwbopendata"]["dataset"]["parameterSet"]
+        header = weather_helper["parameterSetName"]
+        weather_elements = weather_helper["parameter"]
+        comment = weather_elements[2]["parameterValue"]
+
+        weather_obj = weather.weather_data(
+            location=location, date=Time_start, temper=temper, weather=wx, comment=comment
+        )
+        flex_s = weather_obj.make_json()
+        flex = json.loads(flex_s)
+
+        line_bot_api.reply_message(
+            event.reply_token,
+            FlexSendMessage(alt_text="WeatherForcast", contents=flex),
+        )
+
+
 
 
 

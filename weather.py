@@ -1,5 +1,5 @@
-import datetime
-import pytz
+from datetime import datetime
+from zoneinfo import ZoneInfo
 
 class weather_data():
     '''
@@ -230,7 +230,6 @@ class weather_data():
         return json
 
     def make_json(self):
-        tz = pytz.timezone('Asia/Taipei')
         json_data = '''{
   "type": "bubble",
   "size": "giga",
@@ -300,7 +299,7 @@ class weather_data():
       },
       {
         "type": "text",
-        "text": "Update: ''' + datetime.datetime.now(tz).strftime('%Y/%m/%d %H:%M') + '''",
+        "text": "Update: ''' + datetime.now().replace(tzinfo=ZoneInfo('Asia/Taipei')).strftime('%Y/%m/%d %H:%M') + '''",
         "color": "#b7b7b7",
         "size": "xs",
         "align": "end"
