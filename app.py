@@ -1,61 +1,17 @@
 import os
 import json
 import random
-import urllib
 from datetime import datetime
 
 import requests
-from dateutil import parser
-from flask import Flask, request, abort
+from flask import request, abort
 from linebot.exceptions import InvalidSignatureError
 from linebot.models import (
     MessageEvent,
     TextMessage,
     TextSendMessage,
-    SourceUser,
-    SourceGroup,
-    SourceRoom,
     ImageSendMessage,
-    TemplateSendMessage,
-    ConfirmTemplate,
-    MessageAction,
-    ButtonsTemplate,
-    ImageCarouselTemplate,
-    ImageCarouselColumn,
-    URIAction,
-    PostbackAction,
-    DatetimePickerAction,
-    CameraAction,
-    CameraRollAction,
-    LocationAction,
-    CarouselTemplate,
-    CarouselColumn,
-    PostbackEvent,
-    StickerMessage,
-    StickerSendMessage,
-    LocationMessage,
-    LocationSendMessage,
     ImageMessage,
-    VideoMessage,
-    AudioMessage,
-    FileMessage,
-    UnfollowEvent,
-    FollowEvent,
-    JoinEvent,
-    LeaveEvent,
-    BeaconEvent,
-    FlexSendMessage,
-    BubbleContainer,
-    ImageComponent,
-    BoxComponent,
-    TextComponent,
-    # SpacerComponent,
-    IconComponent,
-    ButtonComponent,
-    SeparatorComponent,
-    QuickReply,
-    QuickReplyButton,
-    CarouselContainer,
 )
 
 # from model import *
@@ -63,7 +19,7 @@ import tempfile
 import errno
 from imgur_python import Imgur
 
-import weather
+from mysite.weather import data_process
 from config import (
     client_id,
     client_secret,
@@ -73,14 +29,9 @@ from config import (
     line_bot_api,
     handler,
     account_username,
+    app,
+    FROM_APP,
 )
-import sys
-
-app = Flask(__name__)
-
-# db = SQLAlchemy()
-app.config["SQLALCHEMY_DATABASE"] = ""
-app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
 
 @app.route("/callback", methods=["POST"])
@@ -92,7 +43,7 @@ def callback():
     body = request.get_data(as_text=True)
     bodyjson = json.loads(body)
     # app.logger.error("Request body: " + bodyjson['events'][0]['message']['text'])
-    app.logger.info("Request body: " + body)
+    app.logger.warning("Request body: " + body)
     # insertdata
     print("-----in----------")
     # handle webhook body
@@ -163,7 +114,9 @@ def handle_msg_sticker(event):
     else:
         line_bot_api.reply_message(
             event.reply_token,
-            TextSendMessage(text="APIServerError: status={}".format(r.get("status", "None"))),
+            TextSendMessage(
+                text="APIServerError: status={}".format(r.get("status", "None"))
+            ),
         )
 
 
@@ -171,63 +124,11 @@ def handle_msg_sticker(event):
 def handle_text_msg(event):
     app.logger.warning(event)
     app.logger.warning(event.message.text)
-    if event.message.text == "天氣" or event.message.text.lower().find("weather") > -1:
-        user_id = os.getenv("user_id", "")
-        token = os.getenv("token", "")
-        url = (
-                "https://opendata.cwb.gov.tw/fileapi/v1/opendataapi/F-C0032-001?Authorization="
-                + token
-                + "&format=JSON"
-        )
-        with urllib.request.urlopen(url) as url:
-            data = json.loads(url.read().decode())
-        location = data["cwbopendata"]["dataset"]["location"]
-        Taipei_weather = location[1]
-        weather_elements = location[1]["weatherElement"]
-        Wx = weather_elements[0]
-        MaxT = weather_elements[1]
-        MinT = weather_elements[2]
-        Time_start, Time_end = [], []
-        wx = []
-        for i in range(len(Wx["time"])):
-            t_start = Wx["time"][i]["startTime"]
-            dt_start = parser.parse(t_start)
-            Time_start.append(dt_start.strftime("%m/%d %H:%M"))
+    text = event.message.text
+    if "天氣" in text or "weather" in text.lower():
+        data_process(FROM_APP, event=event)
 
-        maxT, minT = "", ""
-        temper = []
-        for i in range(len(Wx["time"])):
-            if i == len(Wx["time"]) - 1:
-                break
-            wx.append(Wx["time"][i]["parameter"]["parameterName"])
-            maxT = MaxT["time"][i]["parameter"]["parameterName"]
-            minT = MinT["time"][i]["parameter"]["parameterName"]
-            temper.append(minT + "°C" + " ~ " + maxT + "°C")
-        url2 = (
-                "https://opendata.cwb.gov.tw/fileapi/v1/opendataapi/F-C0032-010?Authorization="
-                + token
-                + "&format=JSON"
-        )
-        with urllib.request.urlopen(url2) as url:
-            data = json.loads(url.read().decode())
-        location = data["cwbopendata"]["dataset"]["location"]["locationName"]
-        weather_helper = data["cwbopendata"]["dataset"]["parameterSet"]
-        header = weather_helper["parameterSetName"]
-        weather_elements = weather_helper["parameter"]
-        comment = weather_elements[2]["parameterValue"]
-
-        weather_obj = weather.weather_data(
-            location=location, date=Time_start, temper=temper, weather=wx, comment=comment
-        )
-        flex_s = weather_obj.make_json()
-        flex = json.loads(flex_s)
-
-        line_bot_api.reply_message(
-            event.reply_token,
-            FlexSendMessage(alt_text="WeatherForcast", contents=flex),
-        )
-
-    elif event.message.text.lower().find("tarot") > -1:
+    elif text.lower().find("tarot") > -1:
         data = random.randint(1, 49)
         r = requests.get(f"http://127.0.0.1:8000/akasha/{data}/")
         if r.status_code == 200:
@@ -236,10 +137,12 @@ def handle_text_msg(event):
             app.logger.warning(img_url)
             line_bot_api.reply_message(
                 event.reply_token,
-                ImageSendMessage(original_content_url=img_url, preview_image_url=img_url)
+                ImageSendMessage(
+                    original_content_url=img_url, preview_image_url=img_url
+                ),
             )
 
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
-    app.run(host="0.0.0.0", port=port)
+    app.run(host="0.0.0.0", port=port, debug=True, use_debugger=True, use_reloader=True)

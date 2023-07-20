@@ -1,22 +1,25 @@
 from datetime import datetime
-from zoneinfo import ZoneInfo
 
-class weather_data():
-    '''
-        weather json data class
-    '''
-    def __init__(self, location, date, temper, weather, comment):
-        self.location=location
-        self.date=date
-        self.temper=temper
-        self.weather=weather
-        self.comment=comment
 
-    def make_weather_box(self):
+class WeatherDataParser:
+    """
+    weather json data class
+    """
+
+    def __init__(self, location, date, temper, weather, comment, issued: str):
+        self.location = location
+        self.date = date
+        self.temper = temper
+        self.weather = weather
+        self.comment = comment
+        self.issued = issued
+
+    def _make_weather_box(self):
         def make_weather():
-            json = ''
-            for i in range (len(self.weather)):
-                tmp = '''
+            json_str = ""
+            for i in range(len(self.weather)):
+                tmp = (
+                    '''
               {
                 "type": "box",
                 "layout": "horizontal",
@@ -34,7 +37,9 @@ class weather_data():
                 "contents": [
                   {
                     "type": "text",
-                    "text": "''' + self.weather[i] + '''",
+                    "text": "'''
+                    + self.weather[i]
+                    + """",
                     "size": "xs",
                     "color": "#8c8c8c",
                     "flex": 2,
@@ -44,12 +49,15 @@ class weather_data():
                   }
                 ],
                 "height": "70px"
-              }'''
-                json += tmp
-                if i != len(self.weather)-1: json += ','
-            return json 
+              }"""
+                )
+                json_str += tmp
+                if i != len(self.weather) - 1:
+                    json_str += ","
+            return json_str
 
-        json = '''
+        return (
+            """
           {
             "type": "box",
             "layout": "vertical",
@@ -68,18 +76,21 @@ class weather_data():
                   }
                 ],
                 "height": "30px"
-              },''' + make_weather() + '''
+              },"""
+            + make_weather()
+            + """
             ]
-          }'''
-        return json 
+          }"""
+        )
 
-
-    def make_dates_box(self):
+    def _make_dates_box(self):
         def make_date():
-            json = ''
-            for i in range (len(self.date)):
-                if i == len(self.date)-1: break 
-                tmp = '''
+            json_str = ""
+            for i in range(len(self.date)):
+                if i == len(self.date) - 1:
+                    break
+                tmp = (
+                    '''
               {
                 "type": "box",
                 "layout": "horizontal",
@@ -97,7 +108,9 @@ class weather_data():
                 "contents": [
                   {
                     "type": "text",
-                    "text": "''' + self.date[i] + '''",
+                    "text": "'''
+                    + self.date[i]
+                    + """",
                     "size": "sm",
                     "color": "#8c8c8c",
                     "flex": 2,
@@ -107,12 +120,15 @@ class weather_data():
                   }
                 ],
                 "height": "70px"
-              }'''
-                json += tmp
-                if i != len(self.date)-2: json += ','
-            return json
+              }"""
+                )
+                json_str += tmp
+                if i != len(self.date) - 2:
+                    json_str += ","
+            return json_str
 
-        json = '''
+        return (
+            """
           {
             "type": "box",
             "layout": "vertical",
@@ -131,16 +147,19 @@ class weather_data():
                   }
                 ],
                 "height": "30px"
-              },''' + make_date() + '''
+              },"""
+            + make_date()
+            + """
             ]
-          },'''
-        return json
+          },"""
+        )
 
-    def make_temper_box(self):
+    def _make_temper_box(self):
         def make_temper():
-            json = ''
-            for i in range (len(self.temper)):
-                tmp = '''
+            json_str = ""
+            for i in range(len(self.temper)):
+                tmp = (
+                    '''
               {
                 "type": "box",
                 "layout": "horizontal",
@@ -158,7 +177,9 @@ class weather_data():
                 "contents": [
                   {
                     "type": "text",
-                    "text": "''' + self.temper[i] + '''",
+                    "text": "'''
+                    + self.temper[i]
+                    + """",
                     "size": "xs",
                     "color": "#8c8c8c",
                     "flex": 2,
@@ -168,11 +189,15 @@ class weather_data():
                   }
                 ],
                 "height": "70px"
-              }'''
-                json += tmp 
-                if i != len(self.temper)-1: json += ','
-            return json
-        json = '''
+              }"""
+                )
+                json_str += tmp
+                if i != len(self.temper) - 1:
+                    json_str += ","
+            return json_str
+
+        return (
+            """
           {
             "type": "box",
             "layout": "vertical",
@@ -191,13 +216,16 @@ class weather_data():
                   }
                 ],
                 "height": "30px"
-              },''' + make_temper() + '''
+              },"""
+            + make_temper()
+            + """
             ]
-          },'''
-        return json
+          },"""
+        )
 
-    def make_comment_box(self):
-        json = '''
+    def _make_comment_box(self):
+        json = (
+            '''
           {
             "type": "box",
             "layout": "horizontal",
@@ -218,7 +246,9 @@ class weather_data():
               },
               {
                 "type": "text",
-                "text": "''' + self.comment + '''",
+                "text": "'''
+            + self.comment
+            + """",
                 "size": "sm",
                 "color": "#8c8c8c",
                 "flex": 2,
@@ -226,11 +256,13 @@ class weather_data():
               }
             ],
             "spacing": "md"
-          }'''
+          }"""
+        )
         return json
 
     def make_json(self):
-        json_data = '''{
+        return (
+            '''{
   "type": "bubble",
   "size": "giga",
   "header": {
@@ -245,7 +277,9 @@ class weather_data():
       },
       {
         "type": "text",
-        "text": "''' + self.location + '''",
+        "text": "'''
+            + self.location
+            + """",
         "color": "#ffffff",
         "size": "xl",
         "weight": "bold"
@@ -275,7 +309,9 @@ class weather_data():
               }
             ],
             "flex": 1
-          },''' + self.make_comment_box() + '''
+          },"""
+            + self._make_comment_box()
+            + """
         ],
         "spacing": "md"
       },
@@ -294,12 +330,20 @@ class weather_data():
       {
         "type": "box",
         "layout": "horizontal",
-        "contents": [''' + self.make_dates_box() + self.make_temper_box() + self.make_weather_box() +'''
+        "contents": ["""
+            + self._make_dates_box()
+            + self._make_temper_box()
+            + self._make_weather_box()
+            + """
         ]
       },
       {
         "type": "text",
-        "text": "Update: ''' + datetime.now().replace(tzinfo=ZoneInfo('Asia/Taipei')).strftime('%Y/%m/%d %H:%M') + '''",
+        "text": "最後更新時間: """
+            + datetime.strptime(self.issued, "%Y-%m-%dT%H:%M:%S%z").strftime(
+                "%Y-%m-%d %H:%M"
+            )
+            + """",
         "color": "#b7b7b7",
         "size": "xs",
         "align": "end"
@@ -307,5 +351,5 @@ class weather_data():
     ],
     "spacing": "xl"
   }
-}'''
-        return json_data 
+}"""
+        )

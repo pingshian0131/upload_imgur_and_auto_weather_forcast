@@ -1,4 +1,6 @@
 flask
+Flask-Caching
 line-bot-sdk
 imgur_python
 tzdata
+requests
