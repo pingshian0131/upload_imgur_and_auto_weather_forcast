@@ -64,7 +64,7 @@ def today_weather(_from, *args, **kwargs):
         # Default city if none of the conditions match
         city = "台北市"
 
-    cache_key = f"weather_{city}"
+    cache_key = f"weather_F-C0032-001"
     data = cache.get(cache_key)
     if not data:
         url = f"{OPENWEATHER_URL}F-C0032-001?Authorization={TOKEN}&format=JSON"
@@ -155,7 +155,7 @@ def today_weather(_from, *args, **kwargs):
         "雲林縣": "029",
         "連江縣": "030",
     }
-    cache_key = f"helper_{city}"
+    cache_key = f"helper_F-C0032-{dict_helper.get(city, '009')}"
     data = cache.get(cache_key)
     if not data:
         url = f"{OPENWEATHER_URL}F-C0032-{dict_helper.get(city, '009')}?Authorization={TOKEN}&format=JSON"
