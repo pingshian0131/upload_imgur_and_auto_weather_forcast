@@ -8,7 +8,7 @@ from config import line_bot_api, OPENWEATHER_URL, cache, app, FROM_APP, TOKEN
 from mysite.utils import WeatherDataParser
 
 
-def data_process(_from, *args, **kwargs):
+def today_weather(_from, *args, **kwargs):
     if _from == FROM_APP:
         event = kwargs["event"]
         text = event.message.text
@@ -120,7 +120,7 @@ def data_process(_from, *args, **kwargs):
     wx = []
     for ele in w_desc_time:
         dt_start = datetime.strptime(ele["startTime"], "%Y-%m-%dT%H:%M:%S%z")
-        Time_start.append(dt_start.strftime("%m-%d %H:%M"))
+        Time_start.append(dt_start)
 
     maxT, minT = "", ""
     temper = []

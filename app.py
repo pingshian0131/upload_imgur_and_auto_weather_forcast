@@ -19,7 +19,7 @@ import tempfile
 import errno
 from imgur_python import Imgur
 
-from mysite.weather import data_process
+from mysite.weather import today_weather
 from config import (
     client_id,
     client_secret,
@@ -127,7 +127,7 @@ def handle_text_msg(event):
     app.logger.warning(event.message.text)
     text = event.message.text
     if "天氣" in text or "weather" in text.lower():
-        data_process(FROM_APP, event=event)
+        today_weather(FROM_APP, event=event)
 
     elif text.lower().find("tarot") > -1:
         data = random.randint(1, 49)

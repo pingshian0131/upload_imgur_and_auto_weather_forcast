@@ -1,5 +1,5 @@
 from config import FROM_TASK, USER_ID
-from mysite.weather import data_process
+from mysite.weather import today_weather
 
 
 def job():
@@ -9,7 +9,7 @@ def job():
     weather forcast flex message made from weather.py
     weather data come from https://opendata.cwb.gov.tw/index
     """
-    data_process(FROM_TASK, text="台北", user_id=USER_ID)
+    today_weather(FROM_TASK, text="台北", user_id=USER_ID)
 
 
 if __name__ == "__main__":

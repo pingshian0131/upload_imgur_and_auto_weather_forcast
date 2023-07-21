@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 
 
 class WeatherDataParser:
@@ -39,17 +39,17 @@ class WeatherDataParser:
                     "type": "text",
                     "text": "'''
                     + self.weather[i]
-                    + """",
-                    "size": "xs",
+                    + '''",
+                    "size": "sm",
                     "color": "#8c8c8c",
-                    "flex": 2,
-                    "gravity": "center",
                     "wrap": true,
-                    "offset_start": "5px"
+                    "gravity": "center",
+                    "align": "center"
                   }
                 ],
-                "height": "70px"
-              }"""
+                "height": "70px",
+                "justify_content": "center"
+              }'''
                 )
                 json_str += tmp
                 if i != len(self.weather) - 1:
@@ -86,9 +86,7 @@ class WeatherDataParser:
     def _make_dates_box(self):
         def make_date():
             json_str = ""
-            for i in range(len(self.date)):
-                if i == len(self.date) - 1:
-                    break
+            for i in range(len(self.date) - 1):
                 tmp = (
                     '''
               {
@@ -107,20 +105,38 @@ class WeatherDataParser:
                 "layout": "horizontal",
                 "contents": [
                   {
-                    "type": "text",
-                    "text": "'''
-                    + self.date[i]
-                    + """",
-                    "size": "sm",
-                    "color": "#8c8c8c",
-                    "flex": 2,
-                    "align": "center",
-                    "gravity": "center",
-                    "wrap": true
+                    "type": "box",
+                    "layout": "vertical",
+                    "contents": [
+                      {
+                        "type": "text",
+                        "text": "'''
+                    + self.date[i].strftime("%m-%d %H:%M")
+                    + '''",
+                        "size": "sm",
+                        "color": "#8c8c8c",
+                        "flex": 2,
+                        "align": "center",
+                        "gravity": "center",
+                        "wrap": true
+                      },
+                      {
+                        "type": "text",
+                        "text": "'''
+                    + (self.date[i] + timedelta(hours=12)).strftime("%m-%d %H:%M")
+                    + '''",
+                        "size": "sm",
+                        "color": "#8c8c8c",
+                        "flex": 2,
+                        "align": "center",
+                        "gravity": "center",
+                        "wrap": true
+                      }
+                    ]
                   }
                 ],
                 "height": "70px"
-              }"""
+              }'''
                 )
                 json_str += tmp
                 if i != len(self.date) - 2:
@@ -180,7 +196,7 @@ class WeatherDataParser:
                     "text": "'''
                     + self.temper[i]
                     + """",
-                    "size": "xs",
+                    "size": "md",
                     "color": "#8c8c8c",
                     "flex": 2,
                     "align": "center",
