@@ -5,24 +5,24 @@ from flask_caching import Cache
 from linebot import LineBotApi, WebhookHandler
 
 # imgur key
-client_id = os.environ("client_id", "")
-client_secret = os.environ("client_secret", "")
-album_id = os.environ("album_id", "")
-access_token = os.environ("access_token", "")
-refresh_token = os.environ("refresh_token", "")
-account_username = os.environ("account_username", "")
+client_id = os.environ.get("client_id", "")
+client_secret = os.environ.get("client_secret", "")
+album_id = os.environ.get("album_id", "")
+access_token = os.environ.get("access_token", "")
+refresh_token = os.environ.get("refresh_token", "")
+account_username = os.environ.get("account_username", "")
 # Channel Access Token
 line_bot_api = LineBotApi(
-    os.environ("line_bot_api", "")
+    os.environ.get("line_bot_api", "")
 )
 # Channel Secret
-handler = WebhookHandler(os.environ("webhook", ""))
+handler = WebhookHandler(os.environ.get("webhook", ""))
 # opendata token
-TOKEN = os.environ("TOKEN", "")
-USER_ID = os.environ("USER_ID", "")
+TOKEN = os.environ.get("TOKEN", "")
+USER_ID = os.environ.get("USER_ID", "")
 
 flask_config = {
-    "DEBUG": os.environ("DEBUG", ""),  # some Flask specific configs
+    "DEBUG": os.environ.get("DEBUG", ""),  # some Flask specific configs
     "CACHE_TYPE": "SimpleCache",  # Flask-Caching related configs
     "CACHE_DEFAULT_TIMEOUT": 300,
     "SQLALCHEMY_DATABASE": "",
@@ -31,7 +31,7 @@ flask_config = {
 
 OPENWEATHER_URL = "https://opendata.cwb.gov.tw/fileapi/v1/opendataapi/"
 
-TAROT_FASTAPI = os.environ("TAROT_FASTAPI", "")
+TAROT_FASTAPI = os.environ.get("TAROT_FASTAPI", "")
 
 FROM_APP = 0
 FROM_TASK = 1
