@@ -4,3 +4,4 @@ line-bot-sdk
 imgur_python
 tzdata
 requests
+gunicorn
