@@ -1,6 +1,5 @@
 import os
 import json
-import random
 from datetime import datetime
 
 import requests
@@ -130,8 +129,7 @@ def handle_text_msg(event):
         today_weather(FROM_APP, event=event)
 
     elif text.lower().find("tarot") > -1:
-        data = random.randint(1, 49)
-        r = requests.get(f"{TAROT_FASTAPI}akasha/{data}/")
+        r = requests.get(f"{TAROT_FASTAPI}akasha/")
         if r.status_code == 200:
             resp = r.json()
             img_url = resp.get("link")
