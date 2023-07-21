@@ -19,7 +19,8 @@ line_bot_api = LineBotApi(
 handler = WebhookHandler(os.environ.get("webhook", ""))
 # opendata token
 TOKEN = os.environ.get("TOKEN", "")
-USER_ID = os.environ.get("USER_ID", "")
+USER1 = os.environ.get("USER1", "")
+USER2 = os.environ.get("USER2", "")
 
 flask_config = {
     "DEBUG": os.environ.get("DEBUG", ""),  # some Flask specific configs
