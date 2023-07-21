@@ -31,6 +31,7 @@ from config import (
     account_username,
     app,
     FROM_APP,
+    TAROT_FASTAPI,
 )
 
 
@@ -130,7 +131,7 @@ def handle_text_msg(event):
 
     elif text.lower().find("tarot") > -1:
         data = random.randint(1, 49)
-        r = requests.get(f"http://127.0.0.1:8000/akasha/{data}/")
+        r = requests.get(f"{TAROT_FASTAPI}akasha/{data}/")
         if r.status_code == 200:
             resp = r.json()
             img_url = resp.get("link")
