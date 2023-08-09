@@ -3,16 +3,18 @@ from datetime import datetime
 
 import requests
 from linebot.models import FlexSendMessage, TextSendMessage
+from linebot.v3.messaging import ReplyMessageRequest, TextMessage, FlexMessage
 
-from config import line_bot_api, OPENWEATHER_URL, cache, app, FROM_APP, TOKEN
+from config import OPENWEATHER_URL, cache, app, FROM_APP, TOKEN
 from mysite.utils import WeatherDataParser
 
 
-def today_weather(_from, *args, **kwargs):
+def today_weather(_from, line_bot_api, *args, **kwargs):
     if _from == FROM_APP:
         event = kwargs["event"]
         text = event.message.text
     else:
+        event = None
         text = kwargs["text"]
         user_id = kwargs["user_id"]
 
@@ -76,11 +78,11 @@ def today_weather(_from, *args, **kwargs):
 
         else:
             if _from == FROM_APP:
-                line_bot_api.reply_message(
-                    event.reply_token,
-                    TextSendMessage(
-                        text="APIServerError: status={}".format(r.status_code)
-                    ),
+                line_bot_api.reply_message_with_http_info(
+                    ReplyMessageRequest(
+                        reply_token=event.reply_token,
+                        messages=[TextMessage(text="APIServerError: status={}".format(r.status_code))],
+                    )
                 )
             else:
                 app.logger.error("APIServerError: status={}".format(r.status_code))
@@ -166,11 +168,11 @@ def today_weather(_from, *args, **kwargs):
             app.logger.warning(data)
         else:
             if _from == FROM_APP:
-                line_bot_api.reply_message(
-                    event.reply_token,
-                    TextSendMessage(
-                        text="APIServerError: status={}".format(r.status_code)
-                    ),
+                line_bot_api.reply_message_with_http_info(
+                    ReplyMessageRequest(
+                        reply_token=event.reply_token,
+                        messages=[TextMessage(text="APIServerError: status={}".format(r.status_code))],
+                    )
                 )
             else:
                 app.logger.error("APIServerError: status={}".format(r.status_code))
@@ -193,11 +195,13 @@ def today_weather(_from, *args, **kwargs):
 
     alt_text = f"{city}天氣預報"
     if _from == FROM_APP:
-        line_bot_api.reply_message(
-            event.reply_token,
-            FlexSendMessage(alt_text=alt_text, contents=flex),
+        line_bot_api.reply_message_with_http_info(
+            ReplyMessageRequest(
+                reply_token=event.reply_token,
+                messages=[FlexMessage(talt_text=alt_text, contents=flex)],
+            )
         )
     else:
         line_bot_api.push_message(
-            user_id, FlexSendMessage(alt_text=alt_text, contents=flex)
+            user_id, messages=[FlexMessage(talt_text=alt_text, contents=flex)]
         )

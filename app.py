@@ -2,14 +2,25 @@ import os
 import json
 from datetime import datetime
 
+import io
+from PIL import Image
+
 import requests
 from flask import request, abort
-from linebot.exceptions import InvalidSignatureError
-from linebot.models import (
+from linebot.v3 import WebhookHandler
+from linebot.v3.messaging import AsyncMessagingApiBlob, MessagingApiBlob
+from linebot.v3.exceptions import InvalidSignatureError
+from linebot.v3.webhooks import (
     MessageEvent,
+    TextMessageContent,
+    ImageMessageContent,
+)
+from linebot.v3.messaging import (
+    Configuration,
+    ApiClient,
+    MessagingApi,
+    ReplyMessageRequest,
     TextMessage,
-    TextSendMessage,
-    ImageSendMessage,
     ImageMessage,
 )
 
@@ -17,6 +28,7 @@ from linebot.models import (
 import tempfile
 import errno
 from imgur_python import Imgur
+from linebot.v3.webhooks import TextMessageContent
 
 from mysite.weather import today_weather
 from config import (
@@ -25,12 +37,12 @@ from config import (
     album_id,
     access_token,
     refresh_token,
-    line_bot_api,
     handler,
     account_username,
     app,
     FROM_APP,
     TAROT_FASTAPI,
+    configuration,
 )
 
 
@@ -41,11 +53,8 @@ def callback():
 
     # get request body as text
     body = request.get_data(as_text=True)
-    bodyjson = json.loads(body)
-    # app.logger.error("Request body: " + bodyjson['events'][0]['message']['text'])
-    app.logger.warning("Request body: " + body)
-    # insertdata
-    print("-----in----------")
+    app.logger.info("Request body: " + body)
+
     # handle webhook body
     try:
         handler.handle(body, signature)
@@ -68,80 +77,107 @@ def make_static_tmp_dir():
             raise
 
 
-@handler.add(MessageEvent, message=ImageMessage)
-def handle_msg_sticker(event):
-    """
-    ImageMessage auto upload to imgur and reply image url
-    """
-    make_static_tmp_dir()
-    if isinstance(event.message, ImageMessage):
-        ext = "jpg"
-    message_content = line_bot_api.get_message_content(event.message.id)
-    with tempfile.NamedTemporaryFile(
-        dir=static_tmp_path, prefix=ext + "-", delete=False
-    ) as tf:
-        for chunk in message_content.iter_content():
-            tf.write(chunk)
-        tempfile_path = tf.name
+@handler.add(MessageEvent, message=ImageMessageContent)
+def handle_image_message(event):
+    with ApiClient(configuration) as api_client:
+        line_bot_api = MessagingApiBlob(api_client)
+        content = line_bot_api.get_message_content(message_id=event.message.id)
+        f_path = os.path.join(static_tmp_path, "tmp.jpg")
 
-    dist_path = tempfile_path + "." + ext
-    dist_name = os.path.basename(dist_path)
-    os.rename(tempfile_path, dist_path)
-    client = Imgur(
-        {
-            "client_id": client_id,
-            "client_secret": client_secret,
-            "access_token": access_token,
-            "refresh_token": refresh_token,
-            "account_username": account_username,
-        }
-    )
-    path = os.path.join("static", "tmp", dist_name)
-    r = client.image_upload(
-        filename=path,
-        title="title_{}".format(datetime.now().strftime("%Y%m%d%H%S")),
-        description="desc",
-        album=album_id,
-        disable_audio=1,
-    )
-    os.remove(path)
-    if r.get("status") == 200:
-        link = r["response"]["data"]["link"]
-        line_bot_api.reply_message(
-            event.reply_token,
-            TextSendMessage(text="You can find image here: {0}".format(link)),
+        image_io = io.BytesIO(content)
+        image = Image.open(image_io)
+        image.save(f_path)
+
+        client = Imgur(
+            {
+                "client_id": client_id,
+                "client_secret": client_secret,
+                "access_token": access_token,
+                "refresh_token": refresh_token,
+                "account_username": account_username,
+            }
         )
-    else:
-        line_bot_api.reply_message(
-            event.reply_token,
-            TextSendMessage(
-                text="APIServerError: status={}".format(r.get("status", "None"))
-            ),
+        r = client.image_upload(
+            filename=f_path,
+            title="title_{}".format(datetime.now().strftime("%Y%m%d%H%S")),
+            description="desc",
+            album=album_id,
+            disable_audio=1,
         )
+        os.remove(f_path)
 
+    with ApiClient(configuration) as api_client:
+        line_bot_api = MessagingApi(api_client)
+        if r.get("status") == 200:
+            link = r["response"]["data"]["link"]
+            line_bot_api.reply_message_with_http_info(
+                ReplyMessageRequest(
+                    reply_token=event.reply_token,
+                    messages=[
+                        TextMessage(text="You can find image here: {0}".format(link)),
+                        ImageMessage(
+                            original_content_url=link,
+                            preview_image_url=link,
+                        ),
+                    ],
+                )
+            )
 
-@handler.add(MessageEvent, message=TextMessage)
-def handle_text_msg(event):
-    app.logger.warning(event)
-    app.logger.warning(event.message.text)
-    text = event.message.text
-    if "天氣" in text or "weather" in text.lower():
-        today_weather(FROM_APP, event=event)
-
-    elif text.lower().find("tarot") > -1:
-        r = requests.get(f"{TAROT_FASTAPI}akasha/")
-        if r.status_code == 200:
-            resp = r.json()
-            img_url = resp.get("link")
-            app.logger.warning(img_url)
-            line_bot_api.reply_message(
-                event.reply_token,
-                ImageSendMessage(
-                    original_content_url=img_url, preview_image_url=img_url
-                ),
+        else:
+            line_bot_api.reply_message_with_http_info(
+                ReplyMessageRequest(
+                    reply_token=event.reply_token,
+                    messages=[
+                        TextMessage(
+                            text="APIServerError: status={}".format(
+                                r.get("status", "None")
+                            )
+                        )
+                    ],
+                )
             )
 
 
+@handler.add(MessageEvent, message=TextMessageContent)
+def message_text(event):
+    app.logger.warning(event.source.user_id)
+    app.logger.warning(event.message.text)
+    with ApiClient(configuration) as api_client:
+        line_bot_api = MessagingApi(api_client)
+        text = event.message.text
+        if "天氣" in text or "weather" in text.lower():
+            today_weather(FROM_APP, line_bot_api, event=event)
+        line_bot_api.reply_message_with_http_info(
+            ReplyMessageRequest(
+                reply_token=event.reply_token,
+                messages=[TextMessage(text=event.message.text)],
+            )
+        )
+
+
+
+# @handler.add(MessageEvent, message=TextMessage)
+# def handle_text_msg(event):
+#     app.logger.warning(event)
+#     app.logger.warning(event.message.text)
+#     text = event.message.text
+#     if "天氣" in text or "weather" in text.lower():
+#         today_weather(FROM_APP, event=event)
+#
+#     elif text.lower().find("tarot") > -1:
+#         r = requests.get(f"{TAROT_FASTAPI}akasha/")
+#         if r.status_code == 200:
+#             resp = r.json()
+#             img_url = resp.get("link")
+#             app.logger.warning(img_url)
+#             line_bot_api.reply_message(
+#                 event.reply_token,
+#                 ImageSendMessage(
+#                     original_content_url=img_url, preview_image_url=img_url
+#                 ),
+#             )
+
+
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 5000))
+    port = int(os.environ.get("PORT", 5002))
     app.run(host="0.0.0.0", port=port)

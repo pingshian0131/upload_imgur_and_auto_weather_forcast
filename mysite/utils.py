@@ -1,5 +1,14 @@
 from datetime import datetime, timedelta
 
+from linebot.v3.messaging import (
+    PushMessageRequest,
+    ApiClient,
+    MessagingApi,
+    StickerMessage,
+)
+
+from config import configuration
+
 
 class WeatherDataParser:
     """
@@ -39,7 +48,7 @@ class WeatherDataParser:
                     "type": "text",
                     "text": "'''
                     + self.weather[i]
-                    + '''",
+                    + """",
                     "size": "sm",
                     "color": "#8c8c8c",
                     "wrap": true,
@@ -49,7 +58,7 @@ class WeatherDataParser:
                 ],
                 "height": "70px",
                 "justify_content": "center"
-              }'''
+              }"""
                 )
                 json_str += tmp
                 if i != len(self.weather) - 1:
@@ -124,7 +133,7 @@ class WeatherDataParser:
                         "type": "text",
                         "text": "'''
                     + (self.date[i] + timedelta(hours=12)).strftime("%m-%d %H:%M")
-                    + '''",
+                    + """",
                         "size": "sm",
                         "color": "#8c8c8c",
                         "flex": 2,
@@ -136,7 +145,7 @@ class WeatherDataParser:
                   }
                 ],
                 "height": "70px"
-              }'''
+              }"""
                 )
                 json_str += tmp
                 if i != len(self.date) - 2:
@@ -368,4 +377,32 @@ class WeatherDataParser:
     "spacing": "xl"
   }
 }"""
+        )
+
+
+def push_sticker_yo(user_id):
+    with ApiClient(configuration) as api_client:
+        line_bot_api = MessagingApi(api_client)
+        line_bot_api.push_message(
+            PushMessageRequest(
+                to=user_id,
+                messages=[
+                    StickerMessage(
+                        package_id="446",
+                        sticker_id="1989",
+                    ),
+                    StickerMessage(
+                        package_id="789",
+                        sticker_id="10857",
+                    ),
+                    StickerMessage(
+                        package_id="6325",
+                        sticker_id="10979907",
+                    ),
+                    StickerMessage(
+                        package_id="6325",
+                        sticker_id="10979910",
+                    )
+                ],
+            )
         )

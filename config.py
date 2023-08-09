@@ -3,6 +3,17 @@ import os
 from flask import Flask
 from flask_caching import Cache
 from linebot import LineBotApi, WebhookHandler
+from linebot.v3 import (
+     WebhookHandler
+)
+from linebot.v3.messaging import Configuration
+
+handler = WebhookHandler(os.environ.get("LINE_CHANNEL_SECRET", ""))
+
+configuration = Configuration(
+    access_token=os.environ.get("LINE_CHANNEL_ACCESS_TOKEN", "6J7NNoHty3+DlK+dtoAzHTZB89KKjCZtorOe1iaEu6zitlnCnkFcdQtYTWXkhWMaaMyxzCiiLgVQK016rdR1D9JfphRTIMHm4syVsl6X6PhY19KZlMBSqamvO0zpGEq1ynP6N7swrYG395ZR5OnFGQdB04t89/1O/w1cDnyilFU=")
+)
+
 
 # imgur key
 client_id = os.environ.get("client_id", "")
@@ -11,19 +22,13 @@ album_id = os.environ.get("album_id", "")
 access_token = os.environ.get("access_token", "")
 refresh_token = os.environ.get("refresh_token", "")
 account_username = os.environ.get("account_username", "")
-# Channel Access Token
-line_bot_api = LineBotApi(
-    os.environ.get("line_bot_api", "")
-)
-# Channel Secret
-handler = WebhookHandler(os.environ.get("webhook", ""))
 # opendata token
 TOKEN = os.environ.get("TOKEN", "")
 USER1 = os.environ.get("USER1", "")
 USER2 = os.environ.get("USER2", "")
 
 flask_config = {
-    "DEBUG": os.environ.get("DEBUG", ""),  # some Flask specific configs
+    "DEBUG": os.environ.get("DEBUG", True),  # some Flask specific configs
     "CACHE_TYPE": "SimpleCache",  # Flask-Caching related configs
     "CACHE_DEFAULT_TIMEOUT": 300,
     "SQLALCHEMY_DATABASE": "",
