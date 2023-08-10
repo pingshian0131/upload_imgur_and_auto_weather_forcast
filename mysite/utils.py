@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta
 
+import requests
 from linebot.v3.messaging import (
     PushMessageRequest,
     ApiClient,
@@ -7,7 +8,16 @@ from linebot.v3.messaging import (
     StickerMessage,
 )
 
-from config import configuration, dict_city
+from config import (
+    configuration,
+    dict_city,
+    cache,
+    app,
+    FROM_APP,
+    OPENWEATHER_URL,
+    dict_helper,
+)
+from config import OPENWEATHER_TOKEN as TOKEN
 
 
 def get_city(text: str) -> str:
@@ -61,35 +71,64 @@ def get_city(text: str) -> str:
 
 class WeatherDataParser:
     @classmethod
-    def _process_36hrs(cls, city, data):
+    def _process_36hrs(cls, city, cache_key, _from):
+
+        data = cache.get(cache_key)
+        if not data:
+            url = f"{OPENWEATHER_URL}F-C0032-001?Authorization={TOKEN}&format=JSON"
+            r = requests.get(url)
+            if r.status_code == 200:
+                data = r.json()
+                cache.set(cache_key, data, 60 * 60)
+                app.logger.warning(data)
+            else:
+                if _from == FROM_APP:
+                    raise Exception("APIServerError: status={}".format(r.status_code))
+
+                else:
+                    app.logger.error("APIServerError: status={}".format(r.status_code))
         time_start, wx, temper = [], [], []
-
-        issued = data["cwbopendata"]["dataset"]["datasetInfo"]["issueTime"]
-
         location = data["cwbopendata"]["dataset"]["location"]
-
         city_weather = location[dict_city.get(city, 0)]
         weather_elements = city_weather["weatherElement"]
         w_desc_time = weather_elements[0]["time"]
         max_t = weather_elements[1]
         min_t = weather_elements[2]
 
-        for ele in w_desc_time:
-            dt_start = datetime.strptime(ele["startTime"], "%Y-%m-%dT%H:%M:%S%z")
-            time_start.append(dt_start)
+        time_start = [
+            datetime.strptime(ele["startTime"], "%Y-%m-%dT%H:%M:%S%z")
+            for ele in w_desc_time
+        ]
 
         for i in range(len(w_desc_time) - 1):
             wx.append(w_desc_time[i]["parameter"]["parameterName"])
-            t_msg = "{}°C ~ {}°C".format(
-                min_t["time"][i]["parameter"]["parameterName"],
-                max_t["time"][i]["parameter"]["parameterName"],
+            temper.append(
+                "{}°C ~ {}°C".format(
+                    min_t["time"][i]["parameter"]["parameterName"],
+                    max_t["time"][i]["parameter"]["parameterName"],
+                )
             )
-            temper.append(t_msg)
 
+        issued = data["cwbopendata"]["dataset"]["datasetInfo"]["issueTime"]
         return time_start, wx, temper, issued
 
     @classmethod
-    def _process_helper(cls, data):
+    def _process_helper(cls, city, cache_key, _from):
+
+        data = cache.get(cache_key)
+        if not data:
+            url = f"{OPENWEATHER_URL}F-C0032-{dict_helper.get(city, '009')}?Authorization={TOKEN}&format=JSON"
+            r = requests.get(url)
+            if r.status_code == 200:
+                data = r.json()
+                cache.set(cache_key, data, 60 * 60)
+                app.logger.warning(data)
+            else:
+                if _from == FROM_APP:
+                    raise Exception("APIServerError: status={}".format(r.status_code))
+
+                else:
+                    app.logger.error("APIServerError: status={}".format(r.status_code))
 
         location = data["cwbopendata"]["dataset"]["location"]["locationName"]
         desc = data["cwbopendata"]["dataset"]["parameterSet"]["parameter"][2][
@@ -98,12 +137,10 @@ class WeatherDataParser:
         return location, desc
 
     @classmethod
-    def main(cls, city, data1, data2):
+    def msg1(cls, city, cache_key1, cache_key2, _from):
 
-        time_start, wx, temper, issued = cls._process_36hrs(city, data1)
-
-        loc, desc = cls._process_helper(data2)
-
+        time_start, wx, temper, issued = cls._process_36hrs(city, cache_key1, _from)
+        loc, desc = cls._process_helper(city, cache_key2, _from)
         return FlexMessageMaker(
             **{
                 "loc": loc,
@@ -114,6 +151,10 @@ class WeatherDataParser:
                 "issued": issued,
             }
         ).run()
+
+    @classmethod
+    def msg2(cls):
+        pass
 
 
 class FlexMessageMaker:
