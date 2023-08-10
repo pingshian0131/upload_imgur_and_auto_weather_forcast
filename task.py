@@ -1,4 +1,6 @@
-from config import FROM_TASK, USER1, USER2
+from linebot.v3.messaging import ApiClient, MessagingApi
+
+from config import FROM_TASK, USER1, USER2, configuration
 from mysite.weather import today_weather
 
 
@@ -9,8 +11,22 @@ def job():
     weather forcast flex message made from weather.py
     weather data come from https://opendata.cwb.gov.tw/index
     """
-    today_weather(FROM_TASK, text="台北", user_id=USER2)
-    today_weather(FROM_TASK, text="新北", user_id=USER1)
+    send_list = [
+        {
+            "city": "台北",
+            "user": USER2,
+        },
+        {
+            "city": "新北",
+            "user": USER1,
+        },
+    ]
+    with ApiClient(configuration) as api_client:
+        line_bot_api = MessagingApi(api_client)
+        for data in send_list:
+            today_weather(
+                FROM_TASK, line_bot_api, text=data["city"], user_id=data["user"]
+            )
 
 
 if __name__ == "__main__":

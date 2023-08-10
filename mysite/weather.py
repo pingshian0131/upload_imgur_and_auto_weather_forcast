@@ -3,13 +3,21 @@ from datetime import datetime
 
 import requests
 from linebot.models import FlexSendMessage, TextSendMessage
-from linebot.v3.messaging import ReplyMessageRequest, TextMessage, FlexMessage
+from linebot.v3.messaging import (
+    ReplyMessageRequest,
+    TextMessage,
+    FlexMessage,
+    PushMessageRequest,
+    FlexContainer,
+)
 
-from config import OPENWEATHER_URL, cache, app, FROM_APP, TOKEN
+from config import OPENWEATHER_URL, cache, app, FROM_APP
+from config import OPENWEATHER_TOKEN as TOKEN
 from mysite.utils import WeatherDataParser
 
 
 def today_weather(_from, line_bot_api, *args, **kwargs):
+    print("aaa")
     if _from == FROM_APP:
         event = kwargs["event"]
         text = event.message.text
@@ -81,11 +89,3139 @@ def today_weather(_from, line_bot_api, *args, **kwargs):
                 line_bot_api.reply_message_with_http_info(
                     ReplyMessageRequest(
                         reply_token=event.reply_token,
-                        messages=[TextMessage(text="APIServerError: status={}".format(r.status_code))],
+                        messages=[
+                            TextMessage(
+                                text="APIServerError: status={}".format(r.status_code)
+                            )
+                        ],
                     )
                 )
             else:
                 app.logger.error("APIServerError: status={}".format(r.status_code))
+    # data = {
+    #     "cwbopendata": {
+    #         "@xmlns": "urn:cwb:gov:tw:cwbcommon:0.1",
+    #         "identifier": "3c69e5b0-44db-fdad-e66d-e2069b624190",
+    #         "sender": "weather@cwb.gov.tw",
+    #         "sent": "2023-08-10T07:18:02+08:00",
+    #         "status": "Actual",
+    #         "msgType": "Issue",
+    #         "source": "MFC",
+    #         "dataid": "C0032-001",
+    #         "scope": "Public",
+    #         "dataset": {
+    #             "datasetInfo": {
+    #                 "datasetDescription": "三十六小時天氣預報",
+    #                 "issueTime": "2023-08-10T05:00:00+08:00",
+    #                 "update": "2023-08-10T07:18:02+08:00",
+    #             },
+    #             "location": [
+    #                 {
+    #                     "locationName": "臺北市",
+    #                     "weatherElement": [
+    #                         {
+    #                             "elementName": "Wx",
+    #                             "time": [
+    #                                 {
+    #                                     "startTime": "2023-08-10T06:00:00+08:00",
+    #                                     "endTime": "2023-08-10T18:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "陰短暫陣雨或雷雨",
+    #                                         "parameterValue": "18",
+    #                                     },
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-10T18:00:00+08:00",
+    #                                     "endTime": "2023-08-11T06:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "陰時多雲",
+    #                                         "parameterValue": "6",
+    #                                     },
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-11T06:00:00+08:00",
+    #                                     "endTime": "2023-08-11T18:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "多雲時陰短暫陣雨或雷雨",
+    #                                         "parameterValue": "16",
+    #                                     },
+    #                                 },
+    #                             ],
+    #                         },
+    #                         {
+    #                             "elementName": "MaxT",
+    #                             "time": [
+    #                                 {
+    #                                     "startTime": "2023-08-10T06:00:00+08:00",
+    #                                     "endTime": "2023-08-10T18:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "35",
+    #                                         "parameterUnit": "C",
+    #                                     },
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-10T18:00:00+08:00",
+    #                                     "endTime": "2023-08-11T06:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "31",
+    #                                         "parameterUnit": "C",
+    #                                     },
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-11T06:00:00+08:00",
+    #                                     "endTime": "2023-08-11T18:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "32",
+    #                                         "parameterUnit": "C",
+    #                                     },
+    #                                 },
+    #                             ],
+    #                         },
+    #                         {
+    #                             "elementName": "MinT",
+    #                             "time": [
+    #                                 {
+    #                                     "startTime": "2023-08-10T06:00:00+08:00",
+    #                                     "endTime": "2023-08-10T18:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "28",
+    #                                         "parameterUnit": "C",
+    #                                     },
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-10T18:00:00+08:00",
+    #                                     "endTime": "2023-08-11T06:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "27",
+    #                                         "parameterUnit": "C",
+    #                                     },
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-11T06:00:00+08:00",
+    #                                     "endTime": "2023-08-11T18:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "27",
+    #                                         "parameterUnit": "C",
+    #                                     },
+    #                                 },
+    #                             ],
+    #                         },
+    #                         {
+    #                             "elementName": "CI",
+    #                             "time": [
+    #                                 {
+    #                                     "startTime": "2023-08-10T06:00:00+08:00",
+    #                                     "endTime": "2023-08-10T18:00:00+08:00",
+    #                                     "parameter": {"parameterName": "悶熱至易中暑"},
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-10T18:00:00+08:00",
+    #                                     "endTime": "2023-08-11T06:00:00+08:00",
+    #                                     "parameter": {"parameterName": "舒適至悶熱"},
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-11T06:00:00+08:00",
+    #                                     "endTime": "2023-08-11T18:00:00+08:00",
+    #                                     "parameter": {"parameterName": "舒適至悶熱"},
+    #                                 },
+    #                             ],
+    #                         },
+    #                         {
+    #                             "elementName": "PoP",
+    #                             "time": [
+    #                                 {
+    #                                     "startTime": "2023-08-10T06:00:00+08:00",
+    #                                     "endTime": "2023-08-10T18:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "80",
+    #                                         "parameterUnit": "百分比",
+    #                                     },
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-10T18:00:00+08:00",
+    #                                     "endTime": "2023-08-11T06:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "20",
+    #                                         "parameterUnit": "百分比",
+    #                                     },
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-11T06:00:00+08:00",
+    #                                     "endTime": "2023-08-11T18:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "80",
+    #                                         "parameterUnit": "百分比",
+    #                                     },
+    #                                 },
+    #                             ],
+    #                         },
+    #                     ],
+    #                 },
+    #                 {
+    #                     "locationName": "新北市",
+    #                     "weatherElement": [
+    #                         {
+    #                             "elementName": "Wx",
+    #                             "time": [
+    #                                 {
+    #                                     "startTime": "2023-08-10T06:00:00+08:00",
+    #                                     "endTime": "2023-08-10T18:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "陰時多雲短暫陣雨或雷雨",
+    #                                         "parameterValue": "17",
+    #                                     },
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-10T18:00:00+08:00",
+    #                                     "endTime": "2023-08-11T06:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "多雲",
+    #                                         "parameterValue": "4",
+    #                                     },
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-11T06:00:00+08:00",
+    #                                     "endTime": "2023-08-11T18:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "多雲時陰短暫陣雨或雷雨",
+    #                                         "parameterValue": "16",
+    #                                     },
+    #                                 },
+    #                             ],
+    #                         },
+    #                         {
+    #                             "elementName": "MaxT",
+    #                             "time": [
+    #                                 {
+    #                                     "startTime": "2023-08-10T06:00:00+08:00",
+    #                                     "endTime": "2023-08-10T18:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "34",
+    #                                         "parameterUnit": "C",
+    #                                     },
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-10T18:00:00+08:00",
+    #                                     "endTime": "2023-08-11T06:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "31",
+    #                                         "parameterUnit": "C",
+    #                                     },
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-11T06:00:00+08:00",
+    #                                     "endTime": "2023-08-11T18:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "32",
+    #                                         "parameterUnit": "C",
+    #                                     },
+    #                                 },
+    #                             ],
+    #                         },
+    #                         {
+    #                             "elementName": "MinT",
+    #                             "time": [
+    #                                 {
+    #                                     "startTime": "2023-08-10T06:00:00+08:00",
+    #                                     "endTime": "2023-08-10T18:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "28",
+    #                                         "parameterUnit": "C",
+    #                                     },
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-10T18:00:00+08:00",
+    #                                     "endTime": "2023-08-11T06:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "27",
+    #                                         "parameterUnit": "C",
+    #                                     },
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-11T06:00:00+08:00",
+    #                                     "endTime": "2023-08-11T18:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "27",
+    #                                         "parameterUnit": "C",
+    #                                     },
+    #                                 },
+    #                             ],
+    #                         },
+    #                         {
+    #                             "elementName": "CI",
+    #                             "time": [
+    #                                 {
+    #                                     "startTime": "2023-08-10T06:00:00+08:00",
+    #                                     "endTime": "2023-08-10T18:00:00+08:00",
+    #                                     "parameter": {"parameterName": "悶熱至易中暑"},
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-10T18:00:00+08:00",
+    #                                     "endTime": "2023-08-11T06:00:00+08:00",
+    #                                     "parameter": {"parameterName": "舒適至悶熱"},
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-11T06:00:00+08:00",
+    #                                     "endTime": "2023-08-11T18:00:00+08:00",
+    #                                     "parameter": {"parameterName": "舒適至悶熱"},
+    #                                 },
+    #                             ],
+    #                         },
+    #                         {
+    #                             "elementName": "PoP",
+    #                             "time": [
+    #                                 {
+    #                                     "startTime": "2023-08-10T06:00:00+08:00",
+    #                                     "endTime": "2023-08-10T18:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "70",
+    #                                         "parameterUnit": "百分比",
+    #                                     },
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-10T18:00:00+08:00",
+    #                                     "endTime": "2023-08-11T06:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "20",
+    #                                         "parameterUnit": "百分比",
+    #                                     },
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-11T06:00:00+08:00",
+    #                                     "endTime": "2023-08-11T18:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "80",
+    #                                         "parameterUnit": "百分比",
+    #                                     },
+    #                                 },
+    #                             ],
+    #                         },
+    #                     ],
+    #                 },
+    #                 {
+    #                     "locationName": "桃園市",
+    #                     "weatherElement": [
+    #                         {
+    #                             "elementName": "Wx",
+    #                             "time": [
+    #                                 {
+    #                                     "startTime": "2023-08-10T06:00:00+08:00",
+    #                                     "endTime": "2023-08-10T18:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "多雲時陰短暫陣雨或雷雨",
+    #                                         "parameterValue": "16",
+    #                                     },
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-10T18:00:00+08:00",
+    #                                     "endTime": "2023-08-11T06:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "多雲",
+    #                                         "parameterValue": "4",
+    #                                     },
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-11T06:00:00+08:00",
+    #                                     "endTime": "2023-08-11T18:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "陰時多雲短暫陣雨或雷雨",
+    #                                         "parameterValue": "17",
+    #                                     },
+    #                                 },
+    #                             ],
+    #                         },
+    #                         {
+    #                             "elementName": "MaxT",
+    #                             "time": [
+    #                                 {
+    #                                     "startTime": "2023-08-10T06:00:00+08:00",
+    #                                     "endTime": "2023-08-10T18:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "33",
+    #                                         "parameterUnit": "C",
+    #                                     },
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-10T18:00:00+08:00",
+    #                                     "endTime": "2023-08-11T06:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "30",
+    #                                         "parameterUnit": "C",
+    #                                     },
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-11T06:00:00+08:00",
+    #                                     "endTime": "2023-08-11T18:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "32",
+    #                                         "parameterUnit": "C",
+    #                                     },
+    #                                 },
+    #                             ],
+    #                         },
+    #                         {
+    #                             "elementName": "MinT",
+    #                             "time": [
+    #                                 {
+    #                                     "startTime": "2023-08-10T06:00:00+08:00",
+    #                                     "endTime": "2023-08-10T18:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "28",
+    #                                         "parameterUnit": "C",
+    #                                     },
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-10T18:00:00+08:00",
+    #                                     "endTime": "2023-08-11T06:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "26",
+    #                                         "parameterUnit": "C",
+    #                                     },
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-11T06:00:00+08:00",
+    #                                     "endTime": "2023-08-11T18:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "26",
+    #                                         "parameterUnit": "C",
+    #                                     },
+    #                                 },
+    #                             ],
+    #                         },
+    #                         {
+    #                             "elementName": "CI",
+    #                             "time": [
+    #                                 {
+    #                                     "startTime": "2023-08-10T06:00:00+08:00",
+    #                                     "endTime": "2023-08-10T18:00:00+08:00",
+    #                                     "parameter": {"parameterName": "舒適至悶熱"},
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-10T18:00:00+08:00",
+    #                                     "endTime": "2023-08-11T06:00:00+08:00",
+    #                                     "parameter": {"parameterName": "舒適至悶熱"},
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-11T06:00:00+08:00",
+    #                                     "endTime": "2023-08-11T18:00:00+08:00",
+    #                                     "parameter": {"parameterName": "舒適至悶熱"},
+    #                                 },
+    #                             ],
+    #                         },
+    #                         {
+    #                             "elementName": "PoP",
+    #                             "time": [
+    #                                 {
+    #                                     "startTime": "2023-08-10T06:00:00+08:00",
+    #                                     "endTime": "2023-08-10T18:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "70",
+    #                                         "parameterUnit": "百分比",
+    #                                     },
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-10T18:00:00+08:00",
+    #                                     "endTime": "2023-08-11T06:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "20",
+    #                                         "parameterUnit": "百分比",
+    #                                     },
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-11T06:00:00+08:00",
+    #                                     "endTime": "2023-08-11T18:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "80",
+    #                                         "parameterUnit": "百分比",
+    #                                     },
+    #                                 },
+    #                             ],
+    #                         },
+    #                     ],
+    #                 },
+    #                 {
+    #                     "locationName": "臺中市",
+    #                     "weatherElement": [
+    #                         {
+    #                             "elementName": "Wx",
+    #                             "time": [
+    #                                 {
+    #                                     "startTime": "2023-08-10T06:00:00+08:00",
+    #                                     "endTime": "2023-08-10T18:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "多雲短暫陣雨或雷雨",
+    #                                         "parameterValue": "15",
+    #                                     },
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-10T18:00:00+08:00",
+    #                                     "endTime": "2023-08-11T06:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "多雲時陰",
+    #                                         "parameterValue": "5",
+    #                                     },
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-11T06:00:00+08:00",
+    #                                     "endTime": "2023-08-11T18:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "陰短暫陣雨或雷雨",
+    #                                         "parameterValue": "18",
+    #                                     },
+    #                                 },
+    #                             ],
+    #                         },
+    #                         {
+    #                             "elementName": "MaxT",
+    #                             "time": [
+    #                                 {
+    #                                     "startTime": "2023-08-10T06:00:00+08:00",
+    #                                     "endTime": "2023-08-10T18:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "32",
+    #                                         "parameterUnit": "C",
+    #                                     },
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-10T18:00:00+08:00",
+    #                                     "endTime": "2023-08-11T06:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "30",
+    #                                         "parameterUnit": "C",
+    #                                     },
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-11T06:00:00+08:00",
+    #                                     "endTime": "2023-08-11T18:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "32",
+    #                                         "parameterUnit": "C",
+    #                                     },
+    #                                 },
+    #                             ],
+    #                         },
+    #                         {
+    #                             "elementName": "MinT",
+    #                             "time": [
+    #                                 {
+    #                                     "startTime": "2023-08-10T06:00:00+08:00",
+    #                                     "endTime": "2023-08-10T18:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "28",
+    #                                         "parameterUnit": "C",
+    #                                     },
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-10T18:00:00+08:00",
+    #                                     "endTime": "2023-08-11T06:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "27",
+    #                                         "parameterUnit": "C",
+    #                                     },
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-11T06:00:00+08:00",
+    #                                     "endTime": "2023-08-11T18:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "27",
+    #                                         "parameterUnit": "C",
+    #                                     },
+    #                                 },
+    #                             ],
+    #                         },
+    #                         {
+    #                             "elementName": "CI",
+    #                             "time": [
+    #                                 {
+    #                                     "startTime": "2023-08-10T06:00:00+08:00",
+    #                                     "endTime": "2023-08-10T18:00:00+08:00",
+    #                                     "parameter": {"parameterName": "悶熱"},
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-10T18:00:00+08:00",
+    #                                     "endTime": "2023-08-11T06:00:00+08:00",
+    #                                     "parameter": {"parameterName": "悶熱"},
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-11T06:00:00+08:00",
+    #                                     "endTime": "2023-08-11T18:00:00+08:00",
+    #                                     "parameter": {"parameterName": "悶熱"},
+    #                                 },
+    #                             ],
+    #                         },
+    #                         {
+    #                             "elementName": "PoP",
+    #                             "time": [
+    #                                 {
+    #                                     "startTime": "2023-08-10T06:00:00+08:00",
+    #                                     "endTime": "2023-08-10T18:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "70",
+    #                                         "parameterUnit": "百分比",
+    #                                     },
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-10T18:00:00+08:00",
+    #                                     "endTime": "2023-08-11T06:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "20",
+    #                                         "parameterUnit": "百分比",
+    #                                     },
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-11T06:00:00+08:00",
+    #                                     "endTime": "2023-08-11T18:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "70",
+    #                                         "parameterUnit": "百分比",
+    #                                     },
+    #                                 },
+    #                             ],
+    #                         },
+    #                     ],
+    #                 },
+    #                 {
+    #                     "locationName": "臺南市",
+    #                     "weatherElement": [
+    #                         {
+    #                             "elementName": "Wx",
+    #                             "time": [
+    #                                 {
+    #                                     "startTime": "2023-08-10T06:00:00+08:00",
+    #                                     "endTime": "2023-08-10T18:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "陰短暫陣雨或雷雨",
+    #                                         "parameterValue": "18",
+    #                                     },
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-10T18:00:00+08:00",
+    #                                     "endTime": "2023-08-11T06:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "陰短暫陣雨或雷雨",
+    #                                         "parameterValue": "18",
+    #                                     },
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-11T06:00:00+08:00",
+    #                                     "endTime": "2023-08-11T18:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "陰時多雲短暫陣雨或雷雨",
+    #                                         "parameterValue": "17",
+    #                                     },
+    #                                 },
+    #                             ],
+    #                         },
+    #                         {
+    #                             "elementName": "MaxT",
+    #                             "time": [
+    #                                 {
+    #                                     "startTime": "2023-08-10T06:00:00+08:00",
+    #                                     "endTime": "2023-08-10T18:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "30",
+    #                                         "parameterUnit": "C",
+    #                                     },
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-10T18:00:00+08:00",
+    #                                     "endTime": "2023-08-11T06:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "29",
+    #                                         "parameterUnit": "C",
+    #                                     },
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-11T06:00:00+08:00",
+    #                                     "endTime": "2023-08-11T18:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "30",
+    #                                         "parameterUnit": "C",
+    #                                     },
+    #                                 },
+    #                             ],
+    #                         },
+    #                         {
+    #                             "elementName": "MinT",
+    #                             "time": [
+    #                                 {
+    #                                     "startTime": "2023-08-10T06:00:00+08:00",
+    #                                     "endTime": "2023-08-10T18:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "28",
+    #                                         "parameterUnit": "C",
+    #                                     },
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-10T18:00:00+08:00",
+    #                                     "endTime": "2023-08-11T06:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "27",
+    #                                         "parameterUnit": "C",
+    #                                     },
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-11T06:00:00+08:00",
+    #                                     "endTime": "2023-08-11T18:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "27",
+    #                                         "parameterUnit": "C",
+    #                                     },
+    #                                 },
+    #                             ],
+    #                         },
+    #                         {
+    #                             "elementName": "CI",
+    #                             "time": [
+    #                                 {
+    #                                     "startTime": "2023-08-10T06:00:00+08:00",
+    #                                     "endTime": "2023-08-10T18:00:00+08:00",
+    #                                     "parameter": {"parameterName": "悶熱"},
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-10T18:00:00+08:00",
+    #                                     "endTime": "2023-08-11T06:00:00+08:00",
+    #                                     "parameter": {"parameterName": "舒適至悶熱"},
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-11T06:00:00+08:00",
+    #                                     "endTime": "2023-08-11T18:00:00+08:00",
+    #                                     "parameter": {"parameterName": "舒適至悶熱"},
+    #                                 },
+    #                             ],
+    #                         },
+    #                         {
+    #                             "elementName": "PoP",
+    #                             "time": [
+    #                                 {
+    #                                     "startTime": "2023-08-10T06:00:00+08:00",
+    #                                     "endTime": "2023-08-10T18:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "60",
+    #                                         "parameterUnit": "百分比",
+    #                                     },
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-10T18:00:00+08:00",
+    #                                     "endTime": "2023-08-11T06:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "50",
+    #                                         "parameterUnit": "百分比",
+    #                                     },
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-11T06:00:00+08:00",
+    #                                     "endTime": "2023-08-11T18:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "50",
+    #                                         "parameterUnit": "百分比",
+    #                                     },
+    #                                 },
+    #                             ],
+    #                         },
+    #                     ],
+    #                 },
+    #                 {
+    #                     "locationName": "高雄市",
+    #                     "weatherElement": [
+    #                         {
+    #                             "elementName": "Wx",
+    #                             "time": [
+    #                                 {
+    #                                     "startTime": "2023-08-10T06:00:00+08:00",
+    #                                     "endTime": "2023-08-10T18:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "陰短暫陣雨或雷雨",
+    #                                         "parameterValue": "18",
+    #                                     },
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-10T18:00:00+08:00",
+    #                                     "endTime": "2023-08-11T06:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "陰短暫陣雨或雷雨",
+    #                                         "parameterValue": "18",
+    #                                     },
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-11T06:00:00+08:00",
+    #                                     "endTime": "2023-08-11T18:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "陰短暫陣雨或雷雨",
+    #                                         "parameterValue": "18",
+    #                                     },
+    #                                 },
+    #                             ],
+    #                         },
+    #                         {
+    #                             "elementName": "MaxT",
+    #                             "time": [
+    #                                 {
+    #                                     "startTime": "2023-08-10T06:00:00+08:00",
+    #                                     "endTime": "2023-08-10T18:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "30",
+    #                                         "parameterUnit": "C",
+    #                                     },
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-10T18:00:00+08:00",
+    #                                     "endTime": "2023-08-11T06:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "29",
+    #                                         "parameterUnit": "C",
+    #                                     },
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-11T06:00:00+08:00",
+    #                                     "endTime": "2023-08-11T18:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "30",
+    #                                         "parameterUnit": "C",
+    #                                     },
+    #                                 },
+    #                             ],
+    #                         },
+    #                         {
+    #                             "elementName": "MinT",
+    #                             "time": [
+    #                                 {
+    #                                     "startTime": "2023-08-10T06:00:00+08:00",
+    #                                     "endTime": "2023-08-10T18:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "28",
+    #                                         "parameterUnit": "C",
+    #                                     },
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-10T18:00:00+08:00",
+    #                                     "endTime": "2023-08-11T06:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "27",
+    #                                         "parameterUnit": "C",
+    #                                     },
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-11T06:00:00+08:00",
+    #                                     "endTime": "2023-08-11T18:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "27",
+    #                                         "parameterUnit": "C",
+    #                                     },
+    #                                 },
+    #                             ],
+    #                         },
+    #                         {
+    #                             "elementName": "CI",
+    #                             "time": [
+    #                                 {
+    #                                     "startTime": "2023-08-10T06:00:00+08:00",
+    #                                     "endTime": "2023-08-10T18:00:00+08:00",
+    #                                     "parameter": {"parameterName": "悶熱"},
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-10T18:00:00+08:00",
+    #                                     "endTime": "2023-08-11T06:00:00+08:00",
+    #                                     "parameter": {"parameterName": "舒適至悶熱"},
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-11T06:00:00+08:00",
+    #                                     "endTime": "2023-08-11T18:00:00+08:00",
+    #                                     "parameter": {"parameterName": "舒適至悶熱"},
+    #                                 },
+    #                             ],
+    #                         },
+    #                         {
+    #                             "elementName": "PoP",
+    #                             "time": [
+    #                                 {
+    #                                     "startTime": "2023-08-10T06:00:00+08:00",
+    #                                     "endTime": "2023-08-10T18:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "70",
+    #                                         "parameterUnit": "百分比",
+    #                                     },
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-10T18:00:00+08:00",
+    #                                     "endTime": "2023-08-11T06:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "60",
+    #                                         "parameterUnit": "百分比",
+    #                                     },
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-11T06:00:00+08:00",
+    #                                     "endTime": "2023-08-11T18:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "60",
+    #                                         "parameterUnit": "百分比",
+    #                                     },
+    #                                 },
+    #                             ],
+    #                         },
+    #                     ],
+    #                 },
+    #                 {
+    #                     "locationName": "基隆市",
+    #                     "weatherElement": [
+    #                         {
+    #                             "elementName": "Wx",
+    #                             "time": [
+    #                                 {
+    #                                     "startTime": "2023-08-10T06:00:00+08:00",
+    #                                     "endTime": "2023-08-10T18:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "多雲午後短暫雷陣雨",
+    #                                         "parameterValue": "22",
+    #                                     },
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-10T18:00:00+08:00",
+    #                                     "endTime": "2023-08-11T06:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "多雲",
+    #                                         "parameterValue": "4",
+    #                                     },
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-11T06:00:00+08:00",
+    #                                     "endTime": "2023-08-11T18:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "多雲午後短暫雷陣雨",
+    #                                         "parameterValue": "22",
+    #                                     },
+    #                                 },
+    #                             ],
+    #                         },
+    #                         {
+    #                             "elementName": "MaxT",
+    #                             "time": [
+    #                                 {
+    #                                     "startTime": "2023-08-10T06:00:00+08:00",
+    #                                     "endTime": "2023-08-10T18:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "33",
+    #                                         "parameterUnit": "C",
+    #                                     },
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-10T18:00:00+08:00",
+    #                                     "endTime": "2023-08-11T06:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "30",
+    #                                         "parameterUnit": "C",
+    #                                     },
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-11T06:00:00+08:00",
+    #                                     "endTime": "2023-08-11T18:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "31",
+    #                                         "parameterUnit": "C",
+    #                                     },
+    #                                 },
+    #                             ],
+    #                         },
+    #                         {
+    #                             "elementName": "MinT",
+    #                             "time": [
+    #                                 {
+    #                                     "startTime": "2023-08-10T06:00:00+08:00",
+    #                                     "endTime": "2023-08-10T18:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "28",
+    #                                         "parameterUnit": "C",
+    #                                     },
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-10T18:00:00+08:00",
+    #                                     "endTime": "2023-08-11T06:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "27",
+    #                                         "parameterUnit": "C",
+    #                                     },
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-11T06:00:00+08:00",
+    #                                     "endTime": "2023-08-11T18:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "27",
+    #                                         "parameterUnit": "C",
+    #                                     },
+    #                                 },
+    #                             ],
+    #                         },
+    #                         {
+    #                             "elementName": "CI",
+    #                             "time": [
+    #                                 {
+    #                                     "startTime": "2023-08-10T06:00:00+08:00",
+    #                                     "endTime": "2023-08-10T18:00:00+08:00",
+    #                                     "parameter": {"parameterName": "悶熱至易中暑"},
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-10T18:00:00+08:00",
+    #                                     "endTime": "2023-08-11T06:00:00+08:00",
+    #                                     "parameter": {"parameterName": "舒適至悶熱"},
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-11T06:00:00+08:00",
+    #                                     "endTime": "2023-08-11T18:00:00+08:00",
+    #                                     "parameter": {"parameterName": "舒適至悶熱"},
+    #                                 },
+    #                             ],
+    #                         },
+    #                         {
+    #                             "elementName": "PoP",
+    #                             "time": [
+    #                                 {
+    #                                     "startTime": "2023-08-10T06:00:00+08:00",
+    #                                     "endTime": "2023-08-10T18:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "60",
+    #                                         "parameterUnit": "百分比",
+    #                                     },
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-10T18:00:00+08:00",
+    #                                     "endTime": "2023-08-11T06:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "20",
+    #                                         "parameterUnit": "百分比",
+    #                                     },
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-11T06:00:00+08:00",
+    #                                     "endTime": "2023-08-11T18:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "50",
+    #                                         "parameterUnit": "百分比",
+    #                                     },
+    #                                 },
+    #                             ],
+    #                         },
+    #                     ],
+    #                 },
+    #                 {
+    #                     "locationName": "新竹縣",
+    #                     "weatherElement": [
+    #                         {
+    #                             "elementName": "Wx",
+    #                             "time": [
+    #                                 {
+    #                                     "startTime": "2023-08-10T06:00:00+08:00",
+    #                                     "endTime": "2023-08-10T18:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "陰時多雲短暫陣雨或雷雨",
+    #                                         "parameterValue": "17",
+    #                                     },
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-10T18:00:00+08:00",
+    #                                     "endTime": "2023-08-11T06:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "多雲時陰",
+    #                                         "parameterValue": "5",
+    #                                     },
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-11T06:00:00+08:00",
+    #                                     "endTime": "2023-08-11T18:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "陰短暫陣雨或雷雨",
+    #                                         "parameterValue": "18",
+    #                                     },
+    #                                 },
+    #                             ],
+    #                         },
+    #                         {
+    #                             "elementName": "MaxT",
+    #                             "time": [
+    #                                 {
+    #                                     "startTime": "2023-08-10T06:00:00+08:00",
+    #                                     "endTime": "2023-08-10T18:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "33",
+    #                                         "parameterUnit": "C",
+    #                                     },
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-10T18:00:00+08:00",
+    #                                     "endTime": "2023-08-11T06:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "30",
+    #                                         "parameterUnit": "C",
+    #                                     },
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-11T06:00:00+08:00",
+    #                                     "endTime": "2023-08-11T18:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "32",
+    #                                         "parameterUnit": "C",
+    #                                     },
+    #                                 },
+    #                             ],
+    #                         },
+    #                         {
+    #                             "elementName": "MinT",
+    #                             "time": [
+    #                                 {
+    #                                     "startTime": "2023-08-10T06:00:00+08:00",
+    #                                     "endTime": "2023-08-10T18:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "28",
+    #                                         "parameterUnit": "C",
+    #                                     },
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-10T18:00:00+08:00",
+    #                                     "endTime": "2023-08-11T06:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "26",
+    #                                         "parameterUnit": "C",
+    #                                     },
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-11T06:00:00+08:00",
+    #                                     "endTime": "2023-08-11T18:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "26",
+    #                                         "parameterUnit": "C",
+    #                                     },
+    #                                 },
+    #                             ],
+    #                         },
+    #                         {
+    #                             "elementName": "CI",
+    #                             "time": [
+    #                                 {
+    #                                     "startTime": "2023-08-10T06:00:00+08:00",
+    #                                     "endTime": "2023-08-10T18:00:00+08:00",
+    #                                     "parameter": {"parameterName": "悶熱"},
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-10T18:00:00+08:00",
+    #                                     "endTime": "2023-08-11T06:00:00+08:00",
+    #                                     "parameter": {"parameterName": "舒適至悶熱"},
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-11T06:00:00+08:00",
+    #                                     "endTime": "2023-08-11T18:00:00+08:00",
+    #                                     "parameter": {"parameterName": "舒適至悶熱"},
+    #                                 },
+    #                             ],
+    #                         },
+    #                         {
+    #                             "elementName": "PoP",
+    #                             "time": [
+    #                                 {
+    #                                     "startTime": "2023-08-10T06:00:00+08:00",
+    #                                     "endTime": "2023-08-10T18:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "30",
+    #                                         "parameterUnit": "百分比",
+    #                                     },
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-10T18:00:00+08:00",
+    #                                     "endTime": "2023-08-11T06:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "20",
+    #                                         "parameterUnit": "百分比",
+    #                                     },
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-11T06:00:00+08:00",
+    #                                     "endTime": "2023-08-11T18:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "50",
+    #                                         "parameterUnit": "百分比",
+    #                                     },
+    #                                 },
+    #                             ],
+    #                         },
+    #                     ],
+    #                 },
+    #                 {
+    #                     "locationName": "新竹市",
+    #                     "weatherElement": [
+    #                         {
+    #                             "elementName": "Wx",
+    #                             "time": [
+    #                                 {
+    #                                     "startTime": "2023-08-10T06:00:00+08:00",
+    #                                     "endTime": "2023-08-10T18:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "陰時多雲短暫陣雨或雷雨",
+    #                                         "parameterValue": "17",
+    #                                     },
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-10T18:00:00+08:00",
+    #                                     "endTime": "2023-08-11T06:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "多雲時陰",
+    #                                         "parameterValue": "5",
+    #                                     },
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-11T06:00:00+08:00",
+    #                                     "endTime": "2023-08-11T18:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "陰天",
+    #                                         "parameterValue": "7",
+    #                                     },
+    #                                 },
+    #                             ],
+    #                         },
+    #                         {
+    #                             "elementName": "MaxT",
+    #                             "time": [
+    #                                 {
+    #                                     "startTime": "2023-08-10T06:00:00+08:00",
+    #                                     "endTime": "2023-08-10T18:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "32",
+    #                                         "parameterUnit": "C",
+    #                                     },
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-10T18:00:00+08:00",
+    #                                     "endTime": "2023-08-11T06:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "30",
+    #                                         "parameterUnit": "C",
+    #                                     },
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-11T06:00:00+08:00",
+    #                                     "endTime": "2023-08-11T18:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "31",
+    #                                         "parameterUnit": "C",
+    #                                     },
+    #                                 },
+    #                             ],
+    #                         },
+    #                         {
+    #                             "elementName": "MinT",
+    #                             "time": [
+    #                                 {
+    #                                     "startTime": "2023-08-10T06:00:00+08:00",
+    #                                     "endTime": "2023-08-10T18:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "28",
+    #                                         "parameterUnit": "C",
+    #                                     },
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-10T18:00:00+08:00",
+    #                                     "endTime": "2023-08-11T06:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "26",
+    #                                         "parameterUnit": "C",
+    #                                     },
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-11T06:00:00+08:00",
+    #                                     "endTime": "2023-08-11T18:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "26",
+    #                                         "parameterUnit": "C",
+    #                                     },
+    #                                 },
+    #                             ],
+    #                         },
+    #                         {
+    #                             "elementName": "CI",
+    #                             "time": [
+    #                                 {
+    #                                     "startTime": "2023-08-10T06:00:00+08:00",
+    #                                     "endTime": "2023-08-10T18:00:00+08:00",
+    #                                     "parameter": {"parameterName": "悶熱"},
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-10T18:00:00+08:00",
+    #                                     "endTime": "2023-08-11T06:00:00+08:00",
+    #                                     "parameter": {"parameterName": "舒適至悶熱"},
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-11T06:00:00+08:00",
+    #                                     "endTime": "2023-08-11T18:00:00+08:00",
+    #                                     "parameter": {"parameterName": "舒適至悶熱"},
+    #                                 },
+    #                             ],
+    #                         },
+    #                         {
+    #                             "elementName": "PoP",
+    #                             "time": [
+    #                                 {
+    #                                     "startTime": "2023-08-10T06:00:00+08:00",
+    #                                     "endTime": "2023-08-10T18:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "40",
+    #                                         "parameterUnit": "百分比",
+    #                                     },
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-10T18:00:00+08:00",
+    #                                     "endTime": "2023-08-11T06:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "20",
+    #                                         "parameterUnit": "百分比",
+    #                                     },
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-11T06:00:00+08:00",
+    #                                     "endTime": "2023-08-11T18:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "20",
+    #                                         "parameterUnit": "百分比",
+    #                                     },
+    #                                 },
+    #                             ],
+    #                         },
+    #                     ],
+    #                 },
+    #                 {
+    #                     "locationName": "苗栗縣",
+    #                     "weatherElement": [
+    #                         {
+    #                             "elementName": "Wx",
+    #                             "time": [
+    #                                 {
+    #                                     "startTime": "2023-08-10T06:00:00+08:00",
+    #                                     "endTime": "2023-08-10T18:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "多雲短暫陣雨或雷雨",
+    #                                         "parameterValue": "15",
+    #                                     },
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-10T18:00:00+08:00",
+    #                                     "endTime": "2023-08-11T06:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "多雲時陰",
+    #                                         "parameterValue": "5",
+    #                                     },
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-11T06:00:00+08:00",
+    #                                     "endTime": "2023-08-11T18:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "陰時多雲",
+    #                                         "parameterValue": "6",
+    #                                     },
+    #                                 },
+    #                             ],
+    #                         },
+    #                         {
+    #                             "elementName": "MaxT",
+    #                             "time": [
+    #                                 {
+    #                                     "startTime": "2023-08-10T06:00:00+08:00",
+    #                                     "endTime": "2023-08-10T18:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "32",
+    #                                         "parameterUnit": "C",
+    #                                     },
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-10T18:00:00+08:00",
+    #                                     "endTime": "2023-08-11T06:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "30",
+    #                                         "parameterUnit": "C",
+    #                                     },
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-11T06:00:00+08:00",
+    #                                     "endTime": "2023-08-11T18:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "31",
+    #                                         "parameterUnit": "C",
+    #                                     },
+    #                                 },
+    #                             ],
+    #                         },
+    #                         {
+    #                             "elementName": "MinT",
+    #                             "time": [
+    #                                 {
+    #                                     "startTime": "2023-08-10T06:00:00+08:00",
+    #                                     "endTime": "2023-08-10T18:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "28",
+    #                                         "parameterUnit": "C",
+    #                                     },
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-10T18:00:00+08:00",
+    #                                     "endTime": "2023-08-11T06:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "26",
+    #                                         "parameterUnit": "C",
+    #                                     },
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-11T06:00:00+08:00",
+    #                                     "endTime": "2023-08-11T18:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "26",
+    #                                         "parameterUnit": "C",
+    #                                     },
+    #                                 },
+    #                             ],
+    #                         },
+    #                         {
+    #                             "elementName": "CI",
+    #                             "time": [
+    #                                 {
+    #                                     "startTime": "2023-08-10T06:00:00+08:00",
+    #                                     "endTime": "2023-08-10T18:00:00+08:00",
+    #                                     "parameter": {"parameterName": "悶熱"},
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-10T18:00:00+08:00",
+    #                                     "endTime": "2023-08-11T06:00:00+08:00",
+    #                                     "parameter": {"parameterName": "舒適至悶熱"},
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-11T06:00:00+08:00",
+    #                                     "endTime": "2023-08-11T18:00:00+08:00",
+    #                                     "parameter": {"parameterName": "舒適至悶熱"},
+    #                                 },
+    #                             ],
+    #                         },
+    #                         {
+    #                             "elementName": "PoP",
+    #                             "time": [
+    #                                 {
+    #                                     "startTime": "2023-08-10T06:00:00+08:00",
+    #                                     "endTime": "2023-08-10T18:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "60",
+    #                                         "parameterUnit": "百分比",
+    #                                     },
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-10T18:00:00+08:00",
+    #                                     "endTime": "2023-08-11T06:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "20",
+    #                                         "parameterUnit": "百分比",
+    #                                     },
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-11T06:00:00+08:00",
+    #                                     "endTime": "2023-08-11T18:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "20",
+    #                                         "parameterUnit": "百分比",
+    #                                     },
+    #                                 },
+    #                             ],
+    #                         },
+    #                     ],
+    #                 },
+    #                 {
+    #                     "locationName": "彰化縣",
+    #                     "weatherElement": [
+    #                         {
+    #                             "elementName": "Wx",
+    #                             "time": [
+    #                                 {
+    #                                     "startTime": "2023-08-10T06:00:00+08:00",
+    #                                     "endTime": "2023-08-10T18:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "多雲短暫陣雨或雷雨",
+    #                                         "parameterValue": "15",
+    #                                     },
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-10T18:00:00+08:00",
+    #                                     "endTime": "2023-08-11T06:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "多雲時陰",
+    #                                         "parameterValue": "5",
+    #                                     },
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-11T06:00:00+08:00",
+    #                                     "endTime": "2023-08-11T18:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "陰短暫陣雨或雷雨",
+    #                                         "parameterValue": "18",
+    #                                     },
+    #                                 },
+    #                             ],
+    #                         },
+    #                         {
+    #                             "elementName": "MaxT",
+    #                             "time": [
+    #                                 {
+    #                                     "startTime": "2023-08-10T06:00:00+08:00",
+    #                                     "endTime": "2023-08-10T18:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "32",
+    #                                         "parameterUnit": "C",
+    #                                     },
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-10T18:00:00+08:00",
+    #                                     "endTime": "2023-08-11T06:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "30",
+    #                                         "parameterUnit": "C",
+    #                                     },
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-11T06:00:00+08:00",
+    #                                     "endTime": "2023-08-11T18:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "31",
+    #                                         "parameterUnit": "C",
+    #                                     },
+    #                                 },
+    #                             ],
+    #                         },
+    #                         {
+    #                             "elementName": "MinT",
+    #                             "time": [
+    #                                 {
+    #                                     "startTime": "2023-08-10T06:00:00+08:00",
+    #                                     "endTime": "2023-08-10T18:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "27",
+    #                                         "parameterUnit": "C",
+    #                                     },
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-10T18:00:00+08:00",
+    #                                     "endTime": "2023-08-11T06:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "26",
+    #                                         "parameterUnit": "C",
+    #                                     },
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-11T06:00:00+08:00",
+    #                                     "endTime": "2023-08-11T18:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "26",
+    #                                         "parameterUnit": "C",
+    #                                     },
+    #                                 },
+    #                             ],
+    #                         },
+    #                         {
+    #                             "elementName": "CI",
+    #                             "time": [
+    #                                 {
+    #                                     "startTime": "2023-08-10T06:00:00+08:00",
+    #                                     "endTime": "2023-08-10T18:00:00+08:00",
+    #                                     "parameter": {"parameterName": "舒適至悶熱"},
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-10T18:00:00+08:00",
+    #                                     "endTime": "2023-08-11T06:00:00+08:00",
+    #                                     "parameter": {"parameterName": "舒適至悶熱"},
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-11T06:00:00+08:00",
+    #                                     "endTime": "2023-08-11T18:00:00+08:00",
+    #                                     "parameter": {"parameterName": "舒適至悶熱"},
+    #                                 },
+    #                             ],
+    #                         },
+    #                         {
+    #                             "elementName": "PoP",
+    #                             "time": [
+    #                                 {
+    #                                     "startTime": "2023-08-10T06:00:00+08:00",
+    #                                     "endTime": "2023-08-10T18:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "60",
+    #                                         "parameterUnit": "百分比",
+    #                                     },
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-10T18:00:00+08:00",
+    #                                     "endTime": "2023-08-11T06:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "20",
+    #                                         "parameterUnit": "百分比",
+    #                                     },
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-11T06:00:00+08:00",
+    #                                     "endTime": "2023-08-11T18:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "60",
+    #                                         "parameterUnit": "百分比",
+    #                                     },
+    #                                 },
+    #                             ],
+    #                         },
+    #                     ],
+    #                 },
+    #                 {
+    #                     "locationName": "南投縣",
+    #                     "weatherElement": [
+    #                         {
+    #                             "elementName": "Wx",
+    #                             "time": [
+    #                                 {
+    #                                     "startTime": "2023-08-10T06:00:00+08:00",
+    #                                     "endTime": "2023-08-10T18:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "多雲時陰",
+    #                                         "parameterValue": "5",
+    #                                     },
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-10T18:00:00+08:00",
+    #                                     "endTime": "2023-08-11T06:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "陰時多雲",
+    #                                         "parameterValue": "6",
+    #                                     },
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-11T06:00:00+08:00",
+    #                                     "endTime": "2023-08-11T18:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "陰天",
+    #                                         "parameterValue": "7",
+    #                                     },
+    #                                 },
+    #                             ],
+    #                         },
+    #                         {
+    #                             "elementName": "MaxT",
+    #                             "time": [
+    #                                 {
+    #                                     "startTime": "2023-08-10T06:00:00+08:00",
+    #                                     "endTime": "2023-08-10T18:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "32",
+    #                                         "parameterUnit": "C",
+    #                                     },
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-10T18:00:00+08:00",
+    #                                     "endTime": "2023-08-11T06:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "29",
+    #                                         "parameterUnit": "C",
+    #                                     },
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-11T06:00:00+08:00",
+    #                                     "endTime": "2023-08-11T18:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "31",
+    #                                         "parameterUnit": "C",
+    #                                     },
+    #                                 },
+    #                             ],
+    #                         },
+    #                         {
+    #                             "elementName": "MinT",
+    #                             "time": [
+    #                                 {
+    #                                     "startTime": "2023-08-10T06:00:00+08:00",
+    #                                     "endTime": "2023-08-10T18:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "26",
+    #                                         "parameterUnit": "C",
+    #                                     },
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-10T18:00:00+08:00",
+    #                                     "endTime": "2023-08-11T06:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "26",
+    #                                         "parameterUnit": "C",
+    #                                     },
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-11T06:00:00+08:00",
+    #                                     "endTime": "2023-08-11T18:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "26",
+    #                                         "parameterUnit": "C",
+    #                                     },
+    #                                 },
+    #                             ],
+    #                         },
+    #                         {
+    #                             "elementName": "CI",
+    #                             "time": [
+    #                                 {
+    #                                     "startTime": "2023-08-10T06:00:00+08:00",
+    #                                     "endTime": "2023-08-10T18:00:00+08:00",
+    #                                     "parameter": {"parameterName": "舒適至悶熱"},
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-10T18:00:00+08:00",
+    #                                     "endTime": "2023-08-11T06:00:00+08:00",
+    #                                     "parameter": {"parameterName": "舒適至悶熱"},
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-11T06:00:00+08:00",
+    #                                     "endTime": "2023-08-11T18:00:00+08:00",
+    #                                     "parameter": {"parameterName": "舒適至悶熱"},
+    #                                 },
+    #                             ],
+    #                         },
+    #                         {
+    #                             "elementName": "PoP",
+    #                             "time": [
+    #                                 {
+    #                                     "startTime": "2023-08-10T06:00:00+08:00",
+    #                                     "endTime": "2023-08-10T18:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "20",
+    #                                         "parameterUnit": "百分比",
+    #                                     },
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-10T18:00:00+08:00",
+    #                                     "endTime": "2023-08-11T06:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "20",
+    #                                         "parameterUnit": "百分比",
+    #                                     },
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-11T06:00:00+08:00",
+    #                                     "endTime": "2023-08-11T18:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "20",
+    #                                         "parameterUnit": "百分比",
+    #                                     },
+    #                                 },
+    #                             ],
+    #                         },
+    #                     ],
+    #                 },
+    #                 {
+    #                     "locationName": "雲林縣",
+    #                     "weatherElement": [
+    #                         {
+    #                             "elementName": "Wx",
+    #                             "time": [
+    #                                 {
+    #                                     "startTime": "2023-08-10T06:00:00+08:00",
+    #                                     "endTime": "2023-08-10T18:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "多雲時陰",
+    #                                         "parameterValue": "5",
+    #                                     },
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-10T18:00:00+08:00",
+    #                                     "endTime": "2023-08-11T06:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "陰時多雲",
+    #                                         "parameterValue": "6",
+    #                                     },
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-11T06:00:00+08:00",
+    #                                     "endTime": "2023-08-11T18:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "陰短暫陣雨或雷雨",
+    #                                         "parameterValue": "18",
+    #                                     },
+    #                                 },
+    #                             ],
+    #                         },
+    #                         {
+    #                             "elementName": "MaxT",
+    #                             "time": [
+    #                                 {
+    #                                     "startTime": "2023-08-10T06:00:00+08:00",
+    #                                     "endTime": "2023-08-10T18:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "31",
+    #                                         "parameterUnit": "C",
+    #                                     },
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-10T18:00:00+08:00",
+    #                                     "endTime": "2023-08-11T06:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "28",
+    #                                         "parameterUnit": "C",
+    #                                     },
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-11T06:00:00+08:00",
+    #                                     "endTime": "2023-08-11T18:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "31",
+    #                                         "parameterUnit": "C",
+    #                                     },
+    #                                 },
+    #                             ],
+    #                         },
+    #                         {
+    #                             "elementName": "MinT",
+    #                             "time": [
+    #                                 {
+    #                                     "startTime": "2023-08-10T06:00:00+08:00",
+    #                                     "endTime": "2023-08-10T18:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "26",
+    #                                         "parameterUnit": "C",
+    #                                     },
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-10T18:00:00+08:00",
+    #                                     "endTime": "2023-08-11T06:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "26",
+    #                                         "parameterUnit": "C",
+    #                                     },
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-11T06:00:00+08:00",
+    #                                     "endTime": "2023-08-11T18:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "26",
+    #                                         "parameterUnit": "C",
+    #                                     },
+    #                                 },
+    #                             ],
+    #                         },
+    #                         {
+    #                             "elementName": "CI",
+    #                             "time": [
+    #                                 {
+    #                                     "startTime": "2023-08-10T06:00:00+08:00",
+    #                                     "endTime": "2023-08-10T18:00:00+08:00",
+    #                                     "parameter": {"parameterName": "舒適至悶熱"},
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-10T18:00:00+08:00",
+    #                                     "endTime": "2023-08-11T06:00:00+08:00",
+    #                                     "parameter": {"parameterName": "舒適至悶熱"},
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-11T06:00:00+08:00",
+    #                                     "endTime": "2023-08-11T18:00:00+08:00",
+    #                                     "parameter": {"parameterName": "舒適至悶熱"},
+    #                                 },
+    #                             ],
+    #                         },
+    #                         {
+    #                             "elementName": "PoP",
+    #                             "time": [
+    #                                 {
+    #                                     "startTime": "2023-08-10T06:00:00+08:00",
+    #                                     "endTime": "2023-08-10T18:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "20",
+    #                                         "parameterUnit": "百分比",
+    #                                     },
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-10T18:00:00+08:00",
+    #                                     "endTime": "2023-08-11T06:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "20",
+    #                                         "parameterUnit": "百分比",
+    #                                     },
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-11T06:00:00+08:00",
+    #                                     "endTime": "2023-08-11T18:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "50",
+    #                                         "parameterUnit": "百分比",
+    #                                     },
+    #                                 },
+    #                             ],
+    #                         },
+    #                     ],
+    #                 },
+    #                 {
+    #                     "locationName": "嘉義縣",
+    #                     "weatherElement": [
+    #                         {
+    #                             "elementName": "Wx",
+    #                             "time": [
+    #                                 {
+    #                                     "startTime": "2023-08-10T06:00:00+08:00",
+    #                                     "endTime": "2023-08-10T18:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "陰時多雲短暫陣雨或雷雨",
+    #                                         "parameterValue": "17",
+    #                                     },
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-10T18:00:00+08:00",
+    #                                     "endTime": "2023-08-11T06:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "陰天",
+    #                                         "parameterValue": "7",
+    #                                     },
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-11T06:00:00+08:00",
+    #                                     "endTime": "2023-08-11T18:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "陰短暫陣雨或雷雨",
+    #                                         "parameterValue": "18",
+    #                                     },
+    #                                 },
+    #                             ],
+    #                         },
+    #                         {
+    #                             "elementName": "MaxT",
+    #                             "time": [
+    #                                 {
+    #                                     "startTime": "2023-08-10T06:00:00+08:00",
+    #                                     "endTime": "2023-08-10T18:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "31",
+    #                                         "parameterUnit": "C",
+    #                                     },
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-10T18:00:00+08:00",
+    #                                     "endTime": "2023-08-11T06:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "29",
+    #                                         "parameterUnit": "C",
+    #                                     },
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-11T06:00:00+08:00",
+    #                                     "endTime": "2023-08-11T18:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "31",
+    #                                         "parameterUnit": "C",
+    #                                     },
+    #                                 },
+    #                             ],
+    #                         },
+    #                         {
+    #                             "elementName": "MinT",
+    #                             "time": [
+    #                                 {
+    #                                     "startTime": "2023-08-10T06:00:00+08:00",
+    #                                     "endTime": "2023-08-10T18:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "26",
+    #                                         "parameterUnit": "C",
+    #                                     },
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-10T18:00:00+08:00",
+    #                                     "endTime": "2023-08-11T06:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "26",
+    #                                         "parameterUnit": "C",
+    #                                     },
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-11T06:00:00+08:00",
+    #                                     "endTime": "2023-08-11T18:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "26",
+    #                                         "parameterUnit": "C",
+    #                                     },
+    #                                 },
+    #                             ],
+    #                         },
+    #                         {
+    #                             "elementName": "CI",
+    #                             "time": [
+    #                                 {
+    #                                     "startTime": "2023-08-10T06:00:00+08:00",
+    #                                     "endTime": "2023-08-10T18:00:00+08:00",
+    #                                     "parameter": {"parameterName": "舒適至悶熱"},
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-10T18:00:00+08:00",
+    #                                     "endTime": "2023-08-11T06:00:00+08:00",
+    #                                     "parameter": {"parameterName": "舒適至悶熱"},
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-11T06:00:00+08:00",
+    #                                     "endTime": "2023-08-11T18:00:00+08:00",
+    #                                     "parameter": {"parameterName": "舒適至悶熱"},
+    #                                 },
+    #                             ],
+    #                         },
+    #                         {
+    #                             "elementName": "PoP",
+    #                             "time": [
+    #                                 {
+    #                                     "startTime": "2023-08-10T06:00:00+08:00",
+    #                                     "endTime": "2023-08-10T18:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "60",
+    #                                         "parameterUnit": "百分比",
+    #                                     },
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-10T18:00:00+08:00",
+    #                                     "endTime": "2023-08-11T06:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "20",
+    #                                         "parameterUnit": "百分比",
+    #                                     },
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-11T06:00:00+08:00",
+    #                                     "endTime": "2023-08-11T18:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "70",
+    #                                         "parameterUnit": "百分比",
+    #                                     },
+    #                                 },
+    #                             ],
+    #                         },
+    #                     ],
+    #                 },
+    #                 {
+    #                     "locationName": "嘉義市",
+    #                     "weatherElement": [
+    #                         {
+    #                             "elementName": "Wx",
+    #                             "time": [
+    #                                 {
+    #                                     "startTime": "2023-08-10T06:00:00+08:00",
+    #                                     "endTime": "2023-08-10T18:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "多雲時陰短暫陣雨或雷雨",
+    #                                         "parameterValue": "16",
+    #                                     },
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-10T18:00:00+08:00",
+    #                                     "endTime": "2023-08-11T06:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "陰時多雲",
+    #                                         "parameterValue": "6",
+    #                                     },
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-11T06:00:00+08:00",
+    #                                     "endTime": "2023-08-11T18:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "陰短暫陣雨或雷雨",
+    #                                         "parameterValue": "18",
+    #                                     },
+    #                                 },
+    #                             ],
+    #                         },
+    #                         {
+    #                             "elementName": "MaxT",
+    #                             "time": [
+    #                                 {
+    #                                     "startTime": "2023-08-10T06:00:00+08:00",
+    #                                     "endTime": "2023-08-10T18:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "31",
+    #                                         "parameterUnit": "C",
+    #                                     },
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-10T18:00:00+08:00",
+    #                                     "endTime": "2023-08-11T06:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "28",
+    #                                         "parameterUnit": "C",
+    #                                     },
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-11T06:00:00+08:00",
+    #                                     "endTime": "2023-08-11T18:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "31",
+    #                                         "parameterUnit": "C",
+    #                                     },
+    #                                 },
+    #                             ],
+    #                         },
+    #                         {
+    #                             "elementName": "MinT",
+    #                             "time": [
+    #                                 {
+    #                                     "startTime": "2023-08-10T06:00:00+08:00",
+    #                                     "endTime": "2023-08-10T18:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "26",
+    #                                         "parameterUnit": "C",
+    #                                     },
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-10T18:00:00+08:00",
+    #                                     "endTime": "2023-08-11T06:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "26",
+    #                                         "parameterUnit": "C",
+    #                                     },
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-11T06:00:00+08:00",
+    #                                     "endTime": "2023-08-11T18:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "26",
+    #                                         "parameterUnit": "C",
+    #                                     },
+    #                                 },
+    #                             ],
+    #                         },
+    #                         {
+    #                             "elementName": "CI",
+    #                             "time": [
+    #                                 {
+    #                                     "startTime": "2023-08-10T06:00:00+08:00",
+    #                                     "endTime": "2023-08-10T18:00:00+08:00",
+    #                                     "parameter": {"parameterName": "舒適至悶熱"},
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-10T18:00:00+08:00",
+    #                                     "endTime": "2023-08-11T06:00:00+08:00",
+    #                                     "parameter": {"parameterName": "舒適至悶熱"},
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-11T06:00:00+08:00",
+    #                                     "endTime": "2023-08-11T18:00:00+08:00",
+    #                                     "parameter": {"parameterName": "舒適至悶熱"},
+    #                                 },
+    #                             ],
+    #                         },
+    #                         {
+    #                             "elementName": "PoP",
+    #                             "time": [
+    #                                 {
+    #                                     "startTime": "2023-08-10T06:00:00+08:00",
+    #                                     "endTime": "2023-08-10T18:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "60",
+    #                                         "parameterUnit": "百分比",
+    #                                     },
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-10T18:00:00+08:00",
+    #                                     "endTime": "2023-08-11T06:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "20",
+    #                                         "parameterUnit": "百分比",
+    #                                     },
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-11T06:00:00+08:00",
+    #                                     "endTime": "2023-08-11T18:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "50",
+    #                                         "parameterUnit": "百分比",
+    #                                     },
+    #                                 },
+    #                             ],
+    #                         },
+    #                     ],
+    #                 },
+    #                 {
+    #                     "locationName": "屏東縣",
+    #                     "weatherElement": [
+    #                         {
+    #                             "elementName": "Wx",
+    #                             "time": [
+    #                                 {
+    #                                     "startTime": "2023-08-10T06:00:00+08:00",
+    #                                     "endTime": "2023-08-10T18:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "陰短暫陣雨或雷雨",
+    #                                         "parameterValue": "18",
+    #                                     },
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-10T18:00:00+08:00",
+    #                                     "endTime": "2023-08-11T06:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "陰短暫陣雨或雷雨",
+    #                                         "parameterValue": "18",
+    #                                     },
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-11T06:00:00+08:00",
+    #                                     "endTime": "2023-08-11T18:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "陰短暫陣雨或雷雨",
+    #                                         "parameterValue": "18",
+    #                                     },
+    #                                 },
+    #                             ],
+    #                         },
+    #                         {
+    #                             "elementName": "MaxT",
+    #                             "time": [
+    #                                 {
+    #                                     "startTime": "2023-08-10T06:00:00+08:00",
+    #                                     "endTime": "2023-08-10T18:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "30",
+    #                                         "parameterUnit": "C",
+    #                                     },
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-10T18:00:00+08:00",
+    #                                     "endTime": "2023-08-11T06:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "28",
+    #                                         "parameterUnit": "C",
+    #                                     },
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-11T06:00:00+08:00",
+    #                                     "endTime": "2023-08-11T18:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "30",
+    #                                         "parameterUnit": "C",
+    #                                     },
+    #                                 },
+    #                             ],
+    #                         },
+    #                         {
+    #                             "elementName": "MinT",
+    #                             "time": [
+    #                                 {
+    #                                     "startTime": "2023-08-10T06:00:00+08:00",
+    #                                     "endTime": "2023-08-10T18:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "26",
+    #                                         "parameterUnit": "C",
+    #                                     },
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-10T18:00:00+08:00",
+    #                                     "endTime": "2023-08-11T06:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "26",
+    #                                         "parameterUnit": "C",
+    #                                     },
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-11T06:00:00+08:00",
+    #                                     "endTime": "2023-08-11T18:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "26",
+    #                                         "parameterUnit": "C",
+    #                                     },
+    #                                 },
+    #                             ],
+    #                         },
+    #                         {
+    #                             "elementName": "CI",
+    #                             "time": [
+    #                                 {
+    #                                     "startTime": "2023-08-10T06:00:00+08:00",
+    #                                     "endTime": "2023-08-10T18:00:00+08:00",
+    #                                     "parameter": {"parameterName": "舒適至悶熱"},
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-10T18:00:00+08:00",
+    #                                     "endTime": "2023-08-11T06:00:00+08:00",
+    #                                     "parameter": {"parameterName": "舒適至悶熱"},
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-11T06:00:00+08:00",
+    #                                     "endTime": "2023-08-11T18:00:00+08:00",
+    #                                     "parameter": {"parameterName": "舒適至悶熱"},
+    #                                 },
+    #                             ],
+    #                         },
+    #                         {
+    #                             "elementName": "PoP",
+    #                             "time": [
+    #                                 {
+    #                                     "startTime": "2023-08-10T06:00:00+08:00",
+    #                                     "endTime": "2023-08-10T18:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "90",
+    #                                         "parameterUnit": "百分比",
+    #                                     },
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-10T18:00:00+08:00",
+    #                                     "endTime": "2023-08-11T06:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "50",
+    #                                         "parameterUnit": "百分比",
+    #                                     },
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-11T06:00:00+08:00",
+    #                                     "endTime": "2023-08-11T18:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "80",
+    #                                         "parameterUnit": "百分比",
+    #                                     },
+    #                                 },
+    #                             ],
+    #                         },
+    #                     ],
+    #                 },
+    #                 {
+    #                     "locationName": "宜蘭縣",
+    #                     "weatherElement": [
+    #                         {
+    #                             "elementName": "Wx",
+    #                             "time": [
+    #                                 {
+    #                                     "startTime": "2023-08-10T06:00:00+08:00",
+    #                                     "endTime": "2023-08-10T18:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "陰時多雲",
+    #                                         "parameterValue": "6",
+    #                                     },
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-10T18:00:00+08:00",
+    #                                     "endTime": "2023-08-11T06:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "陰時多雲",
+    #                                         "parameterValue": "6",
+    #                                     },
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-11T06:00:00+08:00",
+    #                                     "endTime": "2023-08-11T18:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "多雲午後短暫雷陣雨",
+    #                                         "parameterValue": "22",
+    #                                     },
+    #                                 },
+    #                             ],
+    #                         },
+    #                         {
+    #                             "elementName": "MaxT",
+    #                             "time": [
+    #                                 {
+    #                                     "startTime": "2023-08-10T06:00:00+08:00",
+    #                                     "endTime": "2023-08-10T18:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "33",
+    #                                         "parameterUnit": "C",
+    #                                     },
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-10T18:00:00+08:00",
+    #                                     "endTime": "2023-08-11T06:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "30",
+    #                                         "parameterUnit": "C",
+    #                                     },
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-11T06:00:00+08:00",
+    #                                     "endTime": "2023-08-11T18:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "32",
+    #                                         "parameterUnit": "C",
+    #                                     },
+    #                                 },
+    #                             ],
+    #                         },
+    #                         {
+    #                             "elementName": "MinT",
+    #                             "time": [
+    #                                 {
+    #                                     "startTime": "2023-08-10T06:00:00+08:00",
+    #                                     "endTime": "2023-08-10T18:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "27",
+    #                                         "parameterUnit": "C",
+    #                                     },
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-10T18:00:00+08:00",
+    #                                     "endTime": "2023-08-11T06:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "26",
+    #                                         "parameterUnit": "C",
+    #                                     },
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-11T06:00:00+08:00",
+    #                                     "endTime": "2023-08-11T18:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "26",
+    #                                         "parameterUnit": "C",
+    #                                     },
+    #                                 },
+    #                             ],
+    #                         },
+    #                         {
+    #                             "elementName": "CI",
+    #                             "time": [
+    #                                 {
+    #                                     "startTime": "2023-08-10T06:00:00+08:00",
+    #                                     "endTime": "2023-08-10T18:00:00+08:00",
+    #                                     "parameter": {"parameterName": "舒適至易中暑"},
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-10T18:00:00+08:00",
+    #                                     "endTime": "2023-08-11T06:00:00+08:00",
+    #                                     "parameter": {"parameterName": "舒適至悶熱"},
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-11T06:00:00+08:00",
+    #                                     "endTime": "2023-08-11T18:00:00+08:00",
+    #                                     "parameter": {"parameterName": "舒適至悶熱"},
+    #                                 },
+    #                             ],
+    #                         },
+    #                         {
+    #                             "elementName": "PoP",
+    #                             "time": [
+    #                                 {
+    #                                     "startTime": "2023-08-10T06:00:00+08:00",
+    #                                     "endTime": "2023-08-10T18:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "20",
+    #                                         "parameterUnit": "百分比",
+    #                                     },
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-10T18:00:00+08:00",
+    #                                     "endTime": "2023-08-11T06:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "20",
+    #                                         "parameterUnit": "百分比",
+    #                                     },
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-11T06:00:00+08:00",
+    #                                     "endTime": "2023-08-11T18:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "40",
+    #                                         "parameterUnit": "百分比",
+    #                                     },
+    #                                 },
+    #                             ],
+    #                         },
+    #                     ],
+    #                 },
+    #                 {
+    #                     "locationName": "花蓮縣",
+    #                     "weatherElement": [
+    #                         {
+    #                             "elementName": "Wx",
+    #                             "time": [
+    #                                 {
+    #                                     "startTime": "2023-08-10T06:00:00+08:00",
+    #                                     "endTime": "2023-08-10T18:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "多雲時晴",
+    #                                         "parameterValue": "3",
+    #                                     },
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-10T18:00:00+08:00",
+    #                                     "endTime": "2023-08-11T06:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "陰時多雲",
+    #                                         "parameterValue": "6",
+    #                                     },
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-11T06:00:00+08:00",
+    #                                     "endTime": "2023-08-11T18:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "多雲午後短暫雷陣雨",
+    #                                         "parameterValue": "22",
+    #                                     },
+    #                                 },
+    #                             ],
+    #                         },
+    #                         {
+    #                             "elementName": "MaxT",
+    #                             "time": [
+    #                                 {
+    #                                     "startTime": "2023-08-10T06:00:00+08:00",
+    #                                     "endTime": "2023-08-10T18:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "33",
+    #                                         "parameterUnit": "C",
+    #                                     },
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-10T18:00:00+08:00",
+    #                                     "endTime": "2023-08-11T06:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "30",
+    #                                         "parameterUnit": "C",
+    #                                     },
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-11T06:00:00+08:00",
+    #                                     "endTime": "2023-08-11T18:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "30",
+    #                                         "parameterUnit": "C",
+    #                                     },
+    #                                 },
+    #                             ],
+    #                         },
+    #                         {
+    #                             "elementName": "MinT",
+    #                             "time": [
+    #                                 {
+    #                                     "startTime": "2023-08-10T06:00:00+08:00",
+    #                                     "endTime": "2023-08-10T18:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "26",
+    #                                         "parameterUnit": "C",
+    #                                     },
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-10T18:00:00+08:00",
+    #                                     "endTime": "2023-08-11T06:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "26",
+    #                                         "parameterUnit": "C",
+    #                                     },
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-11T06:00:00+08:00",
+    #                                     "endTime": "2023-08-11T18:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "26",
+    #                                         "parameterUnit": "C",
+    #                                     },
+    #                                 },
+    #                             ],
+    #                         },
+    #                         {
+    #                             "elementName": "CI",
+    #                             "time": [
+    #                                 {
+    #                                     "startTime": "2023-08-10T06:00:00+08:00",
+    #                                     "endTime": "2023-08-10T18:00:00+08:00",
+    #                                     "parameter": {"parameterName": "舒適至悶熱"},
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-10T18:00:00+08:00",
+    #                                     "endTime": "2023-08-11T06:00:00+08:00",
+    #                                     "parameter": {"parameterName": "舒適至悶熱"},
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-11T06:00:00+08:00",
+    #                                     "endTime": "2023-08-11T18:00:00+08:00",
+    #                                     "parameter": {"parameterName": "舒適至悶熱"},
+    #                                 },
+    #                             ],
+    #                         },
+    #                         {
+    #                             "elementName": "PoP",
+    #                             "time": [
+    #                                 {
+    #                                     "startTime": "2023-08-10T06:00:00+08:00",
+    #                                     "endTime": "2023-08-10T18:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "20",
+    #                                         "parameterUnit": "百分比",
+    #                                     },
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-10T18:00:00+08:00",
+    #                                     "endTime": "2023-08-11T06:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "20",
+    #                                         "parameterUnit": "百分比",
+    #                                     },
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-11T06:00:00+08:00",
+    #                                     "endTime": "2023-08-11T18:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "30",
+    #                                         "parameterUnit": "百分比",
+    #                                     },
+    #                                 },
+    #                             ],
+    #                         },
+    #                     ],
+    #                 },
+    #                 {
+    #                     "locationName": "臺東縣",
+    #                     "weatherElement": [
+    #                         {
+    #                             "elementName": "Wx",
+    #                             "time": [
+    #                                 {
+    #                                     "startTime": "2023-08-10T06:00:00+08:00",
+    #                                     "endTime": "2023-08-10T18:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "多雲時陰",
+    #                                         "parameterValue": "5",
+    #                                     },
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-10T18:00:00+08:00",
+    #                                     "endTime": "2023-08-11T06:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "多雲",
+    #                                         "parameterValue": "4",
+    #                                     },
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-11T06:00:00+08:00",
+    #                                     "endTime": "2023-08-11T18:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "多雲時陰",
+    #                                         "parameterValue": "5",
+    #                                     },
+    #                                 },
+    #                             ],
+    #                         },
+    #                         {
+    #                             "elementName": "MaxT",
+    #                             "time": [
+    #                                 {
+    #                                     "startTime": "2023-08-10T06:00:00+08:00",
+    #                                     "endTime": "2023-08-10T18:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "32",
+    #                                         "parameterUnit": "C",
+    #                                     },
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-10T18:00:00+08:00",
+    #                                     "endTime": "2023-08-11T06:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "30",
+    #                                         "parameterUnit": "C",
+    #                                     },
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-11T06:00:00+08:00",
+    #                                     "endTime": "2023-08-11T18:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "30",
+    #                                         "parameterUnit": "C",
+    #                                     },
+    #                                 },
+    #                             ],
+    #                         },
+    #                         {
+    #                             "elementName": "MinT",
+    #                             "time": [
+    #                                 {
+    #                                     "startTime": "2023-08-10T06:00:00+08:00",
+    #                                     "endTime": "2023-08-10T18:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "27",
+    #                                         "parameterUnit": "C",
+    #                                     },
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-10T18:00:00+08:00",
+    #                                     "endTime": "2023-08-11T06:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "26",
+    #                                         "parameterUnit": "C",
+    #                                     },
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-11T06:00:00+08:00",
+    #                                     "endTime": "2023-08-11T18:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "26",
+    #                                         "parameterUnit": "C",
+    #                                     },
+    #                                 },
+    #                             ],
+    #                         },
+    #                         {
+    #                             "elementName": "CI",
+    #                             "time": [
+    #                                 {
+    #                                     "startTime": "2023-08-10T06:00:00+08:00",
+    #                                     "endTime": "2023-08-10T18:00:00+08:00",
+    #                                     "parameter": {"parameterName": "舒適至易中暑"},
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-10T18:00:00+08:00",
+    #                                     "endTime": "2023-08-11T06:00:00+08:00",
+    #                                     "parameter": {"parameterName": "舒適至悶熱"},
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-11T06:00:00+08:00",
+    #                                     "endTime": "2023-08-11T18:00:00+08:00",
+    #                                     "parameter": {"parameterName": "舒適至悶熱"},
+    #                                 },
+    #                             ],
+    #                         },
+    #                         {
+    #                             "elementName": "PoP",
+    #                             "time": [
+    #                                 {
+    #                                     "startTime": "2023-08-10T06:00:00+08:00",
+    #                                     "endTime": "2023-08-10T18:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "20",
+    #                                         "parameterUnit": "百分比",
+    #                                     },
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-10T18:00:00+08:00",
+    #                                     "endTime": "2023-08-11T06:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "20",
+    #                                         "parameterUnit": "百分比",
+    #                                     },
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-11T06:00:00+08:00",
+    #                                     "endTime": "2023-08-11T18:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "20",
+    #                                         "parameterUnit": "百分比",
+    #                                     },
+    #                                 },
+    #                             ],
+    #                         },
+    #                     ],
+    #                 },
+    #                 {
+    #                     "locationName": "澎湖縣",
+    #                     "weatherElement": [
+    #                         {
+    #                             "elementName": "Wx",
+    #                             "time": [
+    #                                 {
+    #                                     "startTime": "2023-08-10T06:00:00+08:00",
+    #                                     "endTime": "2023-08-10T18:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "陰短暫陣雨或雷雨",
+    #                                         "parameterValue": "18",
+    #                                     },
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-10T18:00:00+08:00",
+    #                                     "endTime": "2023-08-11T06:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "陰時多雲短暫陣雨或雷雨",
+    #                                         "parameterValue": "17",
+    #                                     },
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-11T06:00:00+08:00",
+    #                                     "endTime": "2023-08-11T18:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "陰短暫陣雨或雷雨",
+    #                                         "parameterValue": "18",
+    #                                     },
+    #                                 },
+    #                             ],
+    #                         },
+    #                         {
+    #                             "elementName": "MaxT",
+    #                             "time": [
+    #                                 {
+    #                                     "startTime": "2023-08-10T06:00:00+08:00",
+    #                                     "endTime": "2023-08-10T18:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "30",
+    #                                         "parameterUnit": "C",
+    #                                     },
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-10T18:00:00+08:00",
+    #                                     "endTime": "2023-08-11T06:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "28",
+    #                                         "parameterUnit": "C",
+    #                                     },
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-11T06:00:00+08:00",
+    #                                     "endTime": "2023-08-11T18:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "30",
+    #                                         "parameterUnit": "C",
+    #                                     },
+    #                                 },
+    #                             ],
+    #                         },
+    #                         {
+    #                             "elementName": "MinT",
+    #                             "time": [
+    #                                 {
+    #                                     "startTime": "2023-08-10T06:00:00+08:00",
+    #                                     "endTime": "2023-08-10T18:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "28",
+    #                                         "parameterUnit": "C",
+    #                                     },
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-10T18:00:00+08:00",
+    #                                     "endTime": "2023-08-11T06:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "27",
+    #                                         "parameterUnit": "C",
+    #                                     },
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-11T06:00:00+08:00",
+    #                                     "endTime": "2023-08-11T18:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "27",
+    #                                         "parameterUnit": "C",
+    #                                     },
+    #                                 },
+    #                             ],
+    #                         },
+    #                         {
+    #                             "elementName": "CI",
+    #                             "time": [
+    #                                 {
+    #                                     "startTime": "2023-08-10T06:00:00+08:00",
+    #                                     "endTime": "2023-08-10T18:00:00+08:00",
+    #                                     "parameter": {"parameterName": "悶熱"},
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-10T18:00:00+08:00",
+    #                                     "endTime": "2023-08-11T06:00:00+08:00",
+    #                                     "parameter": {"parameterName": "舒適至悶熱"},
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-11T06:00:00+08:00",
+    #                                     "endTime": "2023-08-11T18:00:00+08:00",
+    #                                     "parameter": {"parameterName": "舒適至悶熱"},
+    #                                 },
+    #                             ],
+    #                         },
+    #                         {
+    #                             "elementName": "PoP",
+    #                             "time": [
+    #                                 {
+    #                                     "startTime": "2023-08-10T06:00:00+08:00",
+    #                                     "endTime": "2023-08-10T18:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "30",
+    #                                         "parameterUnit": "百分比",
+    #                                     },
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-10T18:00:00+08:00",
+    #                                     "endTime": "2023-08-11T06:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "40",
+    #                                         "parameterUnit": "百分比",
+    #                                     },
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-11T06:00:00+08:00",
+    #                                     "endTime": "2023-08-11T18:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "40",
+    #                                         "parameterUnit": "百分比",
+    #                                     },
+    #                                 },
+    #                             ],
+    #                         },
+    #                     ],
+    #                 },
+    #                 {
+    #                     "locationName": "金門縣",
+    #                     "weatherElement": [
+    #                         {
+    #                             "elementName": "Wx",
+    #                             "time": [
+    #                                 {
+    #                                     "startTime": "2023-08-10T06:00:00+08:00",
+    #                                     "endTime": "2023-08-10T18:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "陰時多雲短暫陣雨或雷雨",
+    #                                         "parameterValue": "17",
+    #                                     },
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-10T18:00:00+08:00",
+    #                                     "endTime": "2023-08-11T06:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "陰時多雲短暫陣雨或雷雨",
+    #                                         "parameterValue": "17",
+    #                                     },
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-11T06:00:00+08:00",
+    #                                     "endTime": "2023-08-11T18:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "多雲時陰",
+    #                                         "parameterValue": "5",
+    #                                     },
+    #                                 },
+    #                             ],
+    #                         },
+    #                         {
+    #                             "elementName": "MaxT",
+    #                             "time": [
+    #                                 {
+    #                                     "startTime": "2023-08-10T06:00:00+08:00",
+    #                                     "endTime": "2023-08-10T18:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "32",
+    #                                         "parameterUnit": "C",
+    #                                     },
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-10T18:00:00+08:00",
+    #                                     "endTime": "2023-08-11T06:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "28",
+    #                                         "parameterUnit": "C",
+    #                                     },
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-11T06:00:00+08:00",
+    #                                     "endTime": "2023-08-11T18:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "30",
+    #                                         "parameterUnit": "C",
+    #                                     },
+    #                                 },
+    #                             ],
+    #                         },
+    #                         {
+    #                             "elementName": "MinT",
+    #                             "time": [
+    #                                 {
+    #                                     "startTime": "2023-08-10T06:00:00+08:00",
+    #                                     "endTime": "2023-08-10T18:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "27",
+    #                                         "parameterUnit": "C",
+    #                                     },
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-10T18:00:00+08:00",
+    #                                     "endTime": "2023-08-11T06:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "26",
+    #                                         "parameterUnit": "C",
+    #                                     },
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-11T06:00:00+08:00",
+    #                                     "endTime": "2023-08-11T18:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "26",
+    #                                         "parameterUnit": "C",
+    #                                     },
+    #                                 },
+    #                             ],
+    #                         },
+    #                         {
+    #                             "elementName": "CI",
+    #                             "time": [
+    #                                 {
+    #                                     "startTime": "2023-08-10T06:00:00+08:00",
+    #                                     "endTime": "2023-08-10T18:00:00+08:00",
+    #                                     "parameter": {"parameterName": "悶熱"},
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-10T18:00:00+08:00",
+    #                                     "endTime": "2023-08-11T06:00:00+08:00",
+    #                                     "parameter": {"parameterName": "舒適至悶熱"},
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-11T06:00:00+08:00",
+    #                                     "endTime": "2023-08-11T18:00:00+08:00",
+    #                                     "parameter": {"parameterName": "舒適至悶熱"},
+    #                                 },
+    #                             ],
+    #                         },
+    #                         {
+    #                             "elementName": "PoP",
+    #                             "time": [
+    #                                 {
+    #                                     "startTime": "2023-08-10T06:00:00+08:00",
+    #                                     "endTime": "2023-08-10T18:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "30",
+    #                                         "parameterUnit": "百分比",
+    #                                     },
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-10T18:00:00+08:00",
+    #                                     "endTime": "2023-08-11T06:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "30",
+    #                                         "parameterUnit": "百分比",
+    #                                     },
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-11T06:00:00+08:00",
+    #                                     "endTime": "2023-08-11T18:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "20",
+    #                                         "parameterUnit": "百分比",
+    #                                     },
+    #                                 },
+    #                             ],
+    #                         },
+    #                     ],
+    #                 },
+    #                 {
+    #                     "locationName": "連江縣",
+    #                     "weatherElement": [
+    #                         {
+    #                             "elementName": "Wx",
+    #                             "time": [
+    #                                 {
+    #                                     "startTime": "2023-08-10T06:00:00+08:00",
+    #                                     "endTime": "2023-08-10T18:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "陰時多雲",
+    #                                         "parameterValue": "6",
+    #                                     },
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-10T18:00:00+08:00",
+    #                                     "endTime": "2023-08-11T06:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "多雲短暫陣雨或雷雨",
+    #                                         "parameterValue": "15",
+    #                                     },
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-11T06:00:00+08:00",
+    #                                     "endTime": "2023-08-11T18:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "陰時多雲短暫陣雨或雷雨",
+    #                                         "parameterValue": "17",
+    #                                     },
+    #                                 },
+    #                             ],
+    #                         },
+    #                         {
+    #                             "elementName": "MaxT",
+    #                             "time": [
+    #                                 {
+    #                                     "startTime": "2023-08-10T06:00:00+08:00",
+    #                                     "endTime": "2023-08-10T18:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "29",
+    #                                         "parameterUnit": "C",
+    #                                     },
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-10T18:00:00+08:00",
+    #                                     "endTime": "2023-08-11T06:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "27",
+    #                                         "parameterUnit": "C",
+    #                                     },
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-11T06:00:00+08:00",
+    #                                     "endTime": "2023-08-11T18:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "29",
+    #                                         "parameterUnit": "C",
+    #                                     },
+    #                                 },
+    #                             ],
+    #                         },
+    #                         {
+    #                             "elementName": "MinT",
+    #                             "time": [
+    #                                 {
+    #                                     "startTime": "2023-08-10T06:00:00+08:00",
+    #                                     "endTime": "2023-08-10T18:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "27",
+    #                                         "parameterUnit": "C",
+    #                                     },
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-10T18:00:00+08:00",
+    #                                     "endTime": "2023-08-11T06:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "26",
+    #                                         "parameterUnit": "C",
+    #                                     },
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-11T06:00:00+08:00",
+    #                                     "endTime": "2023-08-11T18:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "26",
+    #                                         "parameterUnit": "C",
+    #                                     },
+    #                                 },
+    #                             ],
+    #                         },
+    #                         {
+    #                             "elementName": "CI",
+    #                             "time": [
+    #                                 {
+    #                                     "startTime": "2023-08-10T06:00:00+08:00",
+    #                                     "endTime": "2023-08-10T18:00:00+08:00",
+    #                                     "parameter": {"parameterName": "舒適至悶熱"},
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-10T18:00:00+08:00",
+    #                                     "endTime": "2023-08-11T06:00:00+08:00",
+    #                                     "parameter": {"parameterName": "舒適"},
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-11T06:00:00+08:00",
+    #                                     "endTime": "2023-08-11T18:00:00+08:00",
+    #                                     "parameter": {"parameterName": "舒適至悶熱"},
+    #                                 },
+    #                             ],
+    #                         },
+    #                         {
+    #                             "elementName": "PoP",
+    #                             "time": [
+    #                                 {
+    #                                     "startTime": "2023-08-10T06:00:00+08:00",
+    #                                     "endTime": "2023-08-10T18:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "20",
+    #                                         "parameterUnit": "百分比",
+    #                                     },
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-10T18:00:00+08:00",
+    #                                     "endTime": "2023-08-11T06:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "30",
+    #                                         "parameterUnit": "百分比",
+    #                                     },
+    #                                 },
+    #                                 {
+    #                                     "startTime": "2023-08-11T06:00:00+08:00",
+    #                                     "endTime": "2023-08-11T18:00:00+08:00",
+    #                                     "parameter": {
+    #                                         "parameterName": "30",
+    #                                         "parameterUnit": "百分比",
+    #                                     },
+    #                                 },
+    #                             ],
+    #                         },
+    #                     ],
+    #                 },
+    #             ],
+    #         },
+    #     }
+    # }
 
     issued = data["cwbopendata"]["dataset"]["datasetInfo"]["issueTime"]
     location = data["cwbopendata"]["dataset"]["location"]
@@ -171,11 +3307,51 @@ def today_weather(_from, line_bot_api, *args, **kwargs):
                 line_bot_api.reply_message_with_http_info(
                     ReplyMessageRequest(
                         reply_token=event.reply_token,
-                        messages=[TextMessage(text="APIServerError: status={}".format(r.status_code))],
+                        messages=[
+                            TextMessage(
+                                text="APIServerError: status={}".format(r.status_code)
+                            )
+                        ],
                     )
                 )
             else:
                 app.logger.error("APIServerError: status={}".format(r.status_code))
+    # data = {
+    #     "cwbopendata": {
+    #         "@xmlns": "urn:cwb:gov:tw:cwbcommon:0.1",
+    #         "identifier": "3a481e21-16a9-9d31-3f4f-e2a80c404c0c",
+    #         "sender": "weather@cwb.gov.tw",
+    #         "sent": "2023-08-10T06:50:16+08:00",
+    #         "status": "Actual",
+    #         "msgType": "Issue",
+    #         "scope": "Public",
+    #         "dataid": "F-C0032-010",
+    #         "source": "Weather Forecast Center",
+    #         "dataset": {
+    #             "datasetInfo": {
+    #                 "datasetDescription": "WeatherAssistant",
+    #                 "datasetLanguage": "zh-TW",
+    #                 "issueTime": "2023-08-10T06:49:10+08:00",
+    #             },
+    #             "location": {
+    #                 "locationName": "新北市",
+    #                 "stationId": "46692",
+    #                 "geocode": "65",
+    #             },
+    #             "parameterSet": {
+    #                 "parameterSetName": "天氣小幫手描述",
+    #                 "parameter": [
+    #                     {"parameterValue": "多雲短暫陣雨或雷雨，出門請攜帶雨具備用，外出做好防曬以免中暑。"},
+    #                     {"parameterValue": "昨天（９日）天氣穩定，雲量較多但仍有陽光，新北站高溫36.4度。"},
+    #                     {
+    #                         "parameterValue": "今天（１０日）西南風影響且水氣增加，天氣多雲短暫陣雨或雷雨，出門請攜帶雨具備用，氣溫27-33度，外出活動請做好防曬並補充水分以免中暑。"
+    #                     },
+    #                     {"parameterValue": "北海岸沿海有長浪發生的機率，請注意。"},
+    #                 ],
+    #             },
+    #         },
+    #     }
+    # }
     location = data["cwbopendata"]["dataset"]["location"]["locationName"]
     weather_helper = data["cwbopendata"]["dataset"]["parameterSet"]
     header = weather_helper["parameterSetName"]
@@ -190,18 +3366,23 @@ def today_weather(_from, line_bot_api, *args, **kwargs):
         comment=comment,
         issued=issued,
     )
-    flex_s = wdp.make_json()
-    flex = json.loads(flex_s)
+    flex = wdp.make_json()
 
     alt_text = f"{city}天氣預報"
     if _from == FROM_APP:
+        print("FROM_APP")
         line_bot_api.reply_message_with_http_info(
             ReplyMessageRequest(
                 reply_token=event.reply_token,
-                messages=[FlexMessage(talt_text=alt_text, contents=flex)],
+                messages=[
+                    FlexMessage(
+                        alt_text=alt_text, contents=FlexContainer.from_dict(flex)
+                    )
+                ],
             )
         )
+
     else:
         line_bot_api.push_message(
-            user_id, messages=[FlexMessage(talt_text=alt_text, contents=flex)]
+            user_id, messages=[FlexMessage(alt_text=alt_text, contents=flex)]
         )

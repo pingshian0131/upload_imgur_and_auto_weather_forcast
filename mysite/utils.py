@@ -24,360 +24,279 @@ class WeatherDataParser:
         self.issued = issued
 
     def _make_weather_box(self):
-        def make_weather():
-            json_str = ""
-            for i in range(len(self.weather)):
-                tmp = (
-                    '''
-              {
+        res = [
+            {
                 "type": "box",
                 "layout": "horizontal",
                 "contents": [
-                  {
-                    "type": "filler"
-                  }
+                    {
+                        "type": "text",
+                        "text": "天氣",
+                        "gravity": "center",
+                        "size": "sm",
+                        "align": "center",
+                        "flex": 1,
+                    }
                 ],
-                "background_color": "#0367D3",
-                "height": "2px"
-              },
-              {
-                "type": "box",
-                "layout": "horizontal",
-                "contents": [
-                  {
-                    "type": "text",
-                    "text": "'''
-                    + self.weather[i]
-                    + """",
-                    "size": "sm",
-                    "color": "#8c8c8c",
-                    "wrap": true,
-                    "gravity": "center",
-                    "align": "center"
-                  }
-                ],
-                "height": "70px",
-                "justify_content": "center"
-              }"""
-                )
-                json_str += tmp
-                if i != len(self.weather) - 1:
-                    json_str += ","
-            return json_str
+                "height": "30px",
+            }
+        ]
+        for i in range(len(self.weather)):
+            res.append(
+                {
+                    "type": "box",
+                    "layout": "horizontal",
+                    "contents": [{"type": "filler"}],
+                    "backgroundColor": "#0367D3",
+                    "height": "2px",
+                }
+            )
+            res.append(
+                {
+                    "type": "box",
+                    "layout": "horizontal",
+                    "contents": [
+                        {
+                            "type": "text",
+                            "text": self.weather[i],
+                            "size": "sm",
+                            "color": "#8c8c8c",
+                            "wrap": True,
+                            "gravity": "center",
+                            "align": "center",
+                        }
+                    ],
+                    "height": "70px",
+                    "justifyContent": "center",
+                }
+            )
 
-        return (
-            """
-          {
-            "type": "box",
-            "layout": "vertical",
-            "contents": [
-              {
-                "type": "box",
-                "layout": "horizontal",
-                "contents": [
-                  {
-                    "type": "text",
-                    "text": "天氣",
-                    "gravity": "center",
-                    "size": "sm",
-                    "align": "center",
-                    "flex": 1
-                  }
-                ],
-                "height": "30px"
-              },"""
-            + make_weather()
-            + """
-            ]
-          }"""
-        )
+        print({"type": "box", "layout": "vertical", "contents": res})
+        return {"type": "box", "layout": "vertical", "contents": res}
 
     def _make_dates_box(self):
-        def make_date():
-            json_str = ""
-            for i in range(len(self.date) - 1):
-                tmp = (
-                    '''
-              {
+        res = [
+            {
                 "type": "box",
                 "layout": "horizontal",
                 "contents": [
-                  {
-                    "type": "filler"
-                  }
+                    {
+                        "type": "text",
+                        "text": "時間",
+                        "gravity": "center",
+                        "size": "sm",
+                        "align": "center",
+                        "flex": 1,
+                    }
                 ],
-                "background_color": "#0367D3",
-                "height": "2px"
-              },
-              {
-                "type": "box",
-                "layout": "horizontal",
-                "contents": [
-                  {
+                "height": "30px",
+            }
+        ]
+        for i in range(len(self.date) - 1):
+            start_str = self.date[i].strftime("%m-%d %H:%M")
+            end_str = (self.date[i] + timedelta(hours=12)).strftime("%m-%d %H:%M")
+            res.append(
+                {
                     "type": "box",
-                    "layout": "vertical",
+                    "layout": "horizontal",
+                    "contents": [{"type": "filler"}],
+                    "backgroundColor": "#0367D3",
+                    "height": "2px",
+                }
+            )
+            res.append(
+                {
+                    "type": "box",
+                    "layout": "horizontal",
                     "contents": [
-                      {
-                        "type": "text",
-                        "text": "'''
-                    + self.date[i].strftime("%m-%d %H:%M")
-                    + '''",
-                        "size": "sm",
-                        "color": "#8c8c8c",
-                        "flex": 2,
-                        "align": "center",
-                        "gravity": "center",
-                        "wrap": true
-                      },
-                      {
-                        "type": "text",
-                        "text": "'''
-                    + (self.date[i] + timedelta(hours=12)).strftime("%m-%d %H:%M")
-                    + """",
-                        "size": "sm",
-                        "color": "#8c8c8c",
-                        "flex": 2,
-                        "align": "center",
-                        "gravity": "center",
-                        "wrap": true
-                      }
-                    ]
-                  }
-                ],
-                "height": "70px"
-              }"""
-                )
-                json_str += tmp
-                if i != len(self.date) - 2:
-                    json_str += ","
-            return json_str
+                        {
+                            "type": "box",
+                            "layout": "vertical",
+                            "contents": [
+                                {
+                                    "type": "text",
+                                    "text": start_str,
+                                    "size": "sm",
+                                    "color": "#8c8c8c",
+                                    "flex": 2,
+                                    "align": "center",
+                                    "gravity": "center",
+                                    "wrap": True,
+                                },
+                                {
+                                    "type": "text",
+                                    "text": end_str,
+                                    "size": "sm",
+                                    "color": "#8c8c8c",
+                                    "flex": 2,
+                                    "align": "center",
+                                    "gravity": "center",
+                                    "wrap": True,
+                                },
+                            ],
+                        }
+                    ],
+                    "height": "70px",
+                }
+            )
 
-        return (
-            """
-          {
-            "type": "box",
-            "layout": "vertical",
-            "contents": [
-              {
-                "type": "box",
-                "layout": "horizontal",
-                "contents": [
-                  {
-                    "type": "text",
-                    "text": "時間",
-                    "gravity": "center",
-                    "size": "sm",
-                    "align": "center",
-                    "flex": 1
-                  }
-                ],
-                "height": "30px"
-              },"""
-            + make_date()
-            + """
-            ]
-          },"""
-        )
+        print({"type": "box", "layout": "vertical", "contents": res})
+        return {"type": "box", "layout": "vertical", "contents": res}
 
     def _make_temper_box(self):
-        def make_temper():
-            json_str = ""
-            for i in range(len(self.temper)):
-                tmp = (
-                    '''
-              {
+        res = [
+            {
                 "type": "box",
                 "layout": "horizontal",
                 "contents": [
-                  {
-                    "type": "filler"
-                  }
+                    {
+                        "type": "text",
+                        "text": "氣溫",
+                        "gravity": "center",
+                        "size": "sm",
+                        "align": "center",
+                        "flex": 1,
+                    }
                 ],
-                "background_color": "#0367D3",
-                "height": "2px"
-              },
-              {
-                "type": "box",
-                "layout": "horizontal",
-                "contents": [
-                  {
-                    "type": "text",
-                    "text": "'''
-                    + self.temper[i]
-                    + """",
-                    "size": "md",
-                    "color": "#8c8c8c",
-                    "flex": 2,
-                    "align": "center",
-                    "gravity": "center",
-                    "wrap": true
-                  }
-                ],
-                "height": "70px"
-              }"""
-                )
-                json_str += tmp
-                if i != len(self.temper) - 1:
-                    json_str += ","
-            return json_str
+                "height": "30px",
+            }
+        ]
+        for i in range(len(self.temper)):
+            res.append(
+                {
+                    "type": "box",
+                    "layout": "horizontal",
+                    "contents": [{"type": "filler"}],
+                    "backgroundColor": "#0367D3",
+                    "height": "2px",
+                }
+            )
+            res.append(
+                {
+                    "type": "box",
+                    "layout": "horizontal",
+                    "contents": [
+                        {
+                            "type": "text",
+                            "text": self.temper[i],
+                            "size": "md",
+                            "color": "#8c8c8c",
+                            "flex": 2,
+                            "align": "center",
+                            "gravity": "center",
+                            "wrap": True,
+                        }
+                    ],
+                    "height": "70px",
+                }
+            )
 
-        return (
-            """
-          {
-            "type": "box",
-            "layout": "vertical",
-            "contents": [
-              {
-                "type": "box",
-                "layout": "horizontal",
-                "contents": [
-                  {
-                    "type": "text",
-                    "text": "氣溫",
-                    "gravity": "center",
-                    "size": "sm",
-                    "align": "center",
-                    "flex": 1
-                  }
-                ],
-                "height": "30px"
-              },"""
-            + make_temper()
-            + """
-            ]
-          },"""
-        )
+        print({"type": "box", "layout": "vertical", "contents": res})
+        return {"type": "box", "layout": "vertical", "contents": res}
 
     def _make_comment_box(self):
-        json = (
-            '''
-          {
+        return {
             "type": "box",
             "layout": "horizontal",
             "contents": [
-              {
+                {
+                    "type": "box",
+                    "layout": "vertical",
+                    "contents": [{"type": "filler"}],
+                    "cornerRadius": "30px",
+                    "width": "12px",
+                    "height": "12px",
+                    "borderWidth": "2px",
+                    "borderColor": "#6486E3",
+                },
+                {
+                    "type": "text",
+                    "text": self.comment,
+                    "size": "sm",
+                    "color": "#8c8c8c",
+                    "flex": 2,
+                    "wrap": True,
+                },
+            ],
+            "spacing": "md",
+        }
+
+    def make_json(self) -> dict:
+        dt = datetime.strptime(self.issued, "%Y-%m-%dT%H:%M:%S%z")
+        last_update_time = f"最後更新時間: {dt.strftime('%Y-%m-%d %H:%M')}"
+        return {
+            "type": "bubble",
+            "size": "giga",
+            "header": {
                 "type": "box",
                 "layout": "vertical",
                 "contents": [
-                  {
-                    "type": "filler"
-                  }
+                    {"type": "text", "text": "天氣", "color": "#ffffff66", "size": "sm"},
+                    {
+                        "type": "text",
+                        "text": self.location,
+                        "color": "#ffffff",
+                        "size": "xl",
+                        "weight": "bold",
+                    },
                 ],
-                "corner_radius": "30px",
-                "width": "12px",
-                "height": "12px",
-                "border_width": "2px",
-                "border_color": "#6486E3"
-              },
-              {
-                "type": "text",
-                "text": "'''
-            + self.comment
-            + """",
-                "size": "sm",
-                "color": "#8c8c8c",
-                "flex": 2,
-                "wrap": true
-              }
-            ],
-            "spacing": "md"
-          }"""
-        )
-        return json
-
-    def make_json(self):
-        return (
-            '''{
-  "type": "bubble",
-  "size": "giga",
-  "header": {
-    "type": "box",
-    "layout": "vertical",
-    "contents": [
-      {
-        "type": "text",
-        "text": "天氣",
-        "color": "#ffffff66",
-        "size": "sm"
-      },
-      {
-        "type": "text",
-        "text": "'''
-            + self.location
-            + """",
-        "color": "#ffffff",
-        "size": "xl",
-        "weight": "bold"
-      }
-    ],
-    "padding_all": "20px",
-    "background_color": "#0367D3",
-    "padding_top": "22px"
-  },
-  "body": {
-    "type": "box",
-    "layout": "vertical",
-    "contents": [
-      {
-        "type": "box",
-        "layout": "vertical",
-        "contents": [
-          {
-            "type": "box",
-            "layout": "horizontal",
-            "contents": [
-              {
-                "type": "text",
-                "text": "天氣概況",
-                "gravity": "center",
-                "size": "sm"
-              }
-            ],
-            "flex": 1
-          },"""
-            + self._make_comment_box()
-            + """
-        ],
-        "spacing": "md"
-      },
-      {
-        "type": "box",
-        "layout": "horizontal",
-        "contents": [
-          {
-            "type": "text",
-            "text": "今明24小時天氣預報預報",
-            "size": "sm"
-          }
-        ],
-        "flex": 1
-      },
-      {
-        "type": "box",
-        "layout": "horizontal",
-        "contents": ["""
-            + self._make_dates_box()
-            + self._make_temper_box()
-            + self._make_weather_box()
-            + """
-        ]
-      },
-      {
-        "type": "text",
-        "text": "最後更新時間: """
-            + datetime.strptime(self.issued, "%Y-%m-%dT%H:%M:%S%z").strftime(
-                "%Y-%m-%d %H:%M"
-            )
-            + """",
-        "color": "#b7b7b7",
-        "size": "xs",
-        "align": "end"
-      }
-    ],
-    "spacing": "xl"
-  }
-}"""
-        )
+                "paddingAll": "20px",
+                "backgroundColor": "#0367D3",
+                "paddingTop": "22px",
+            },
+            "body": {
+                "type": "box",
+                "layout": "vertical",
+                "contents": [
+                    {
+                        "type": "box",
+                        "layout": "vertical",
+                        "contents": [
+                            {
+                                "type": "box",
+                                "layout": "horizontal",
+                                "contents": [
+                                    {
+                                        "type": "text",
+                                        "text": "天氣概況",
+                                        "gravity": "center",
+                                        "size": "sm",
+                                    }
+                                ],
+                                "flex": 1,
+                            },
+                            self._make_comment_box(),
+                        ],
+                        "spacing": "md",
+                    },
+                    {
+                        "type": "box",
+                        "layout": "horizontal",
+                        "contents": [
+                            {"type": "text", "text": "今明24小時天氣預報預報", "size": "sm"}
+                        ],
+                        "flex": 1,
+                    },
+                    {
+                        "type": "box",
+                        "layout": "horizontal",
+                        "contents": [
+                            self._make_dates_box(),
+                            self._make_temper_box(),
+                            self._make_weather_box(),
+                        ],
+                    },
+                    {
+                        "type": "text",
+                        "text": last_update_time,
+                        "color": "#b7b7b7",
+                        "size": "xs",
+                        "align": "end",
+                    },
+                ],
+                "spacing": "xl",
+            },
+        }
 
 
 def push_sticker_yo(user_id):
@@ -402,7 +321,7 @@ def push_sticker_yo(user_id):
                     StickerMessage(
                         package_id="6325",
                         sticker_id="10979910",
-                    )
+                    ),
                 ],
             )
         )

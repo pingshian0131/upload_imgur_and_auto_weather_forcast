@@ -3,27 +3,28 @@ import os
 from flask import Flask
 from flask_caching import Cache
 from linebot import LineBotApi, WebhookHandler
-from linebot.v3 import (
-     WebhookHandler
-)
+from linebot.v3 import WebhookHandler
 from linebot.v3.messaging import Configuration
 
 handler = WebhookHandler(os.environ.get("LINE_CHANNEL_SECRET", ""))
 
 configuration = Configuration(
-    access_token=os.environ.get("LINE_CHANNEL_ACCESS_TOKEN", "6J7NNoHty3+DlK+dtoAzHTZB89KKjCZtorOe1iaEu6zitlnCnkFcdQtYTWXkhWMaaMyxzCiiLgVQK016rdR1D9JfphRTIMHm4syVsl6X6PhY19KZlMBSqamvO0zpGEq1ynP6N7swrYG395ZR5OnFGQdB04t89/1O/w1cDnyilFU=")
+    access_token=os.environ.get(
+        "LINE_CHANNEL_ACCESS_TOKEN",
+        "",
+    )
 )
 
-
+STATIC_TMP = os.path.join(os.path.dirname(__file__), "static", "tmp")
 # imgur key
-client_id = os.environ.get("client_id", "")
-client_secret = os.environ.get("client_secret", "")
-album_id = os.environ.get("album_id", "")
-access_token = os.environ.get("access_token", "")
-refresh_token = os.environ.get("refresh_token", "")
-account_username = os.environ.get("account_username", "")
+IMGUR_CLIENT_ID = os.environ.get("IMGUR_CLIENT_ID", "")
+IMGUR_CLIENT_SECRET = os.environ.get("IMGUR_CLIENT_SECRET", "")
+IMGUR_ALBUM_ID = os.environ.get("IMGUR_ALBUM_ID", "")
+IMGUR_ACCESS_TOKEN = os.environ.get("IMGUR_ACCESS_TOKEN", "")
+IMGUR_REFRESH_TOKEN = os.environ.get("IMGUR_REFRESH_TOKEN", "")
+IMGUR_ACCOUNT_USERNAME = os.environ.get("IMGUR_ACCOUNT_USERNAME", "")
+
 # opendata token
-TOKEN = os.environ.get("TOKEN", "")
 USER1 = os.environ.get("USER1", "")
 USER2 = os.environ.get("USER2", "")
 
@@ -36,6 +37,7 @@ flask_config = {
 }
 
 OPENWEATHER_URL = "https://opendata.cwb.gov.tw/fileapi/v1/opendataapi/"
+OPENWEATHER_TOKEN = os.environ.get("OPENWEATHER_TOKEN", "")
 
 TAROT_FASTAPI = os.environ.get("TAROT_FASTAPI", "")
 
