@@ -1,7 +1,7 @@
 from linebot.v3.messaging import ApiClient, MessagingApi
 
 from config import FROM_TASK, USER1, USER2, configuration
-from mysite.weather import today_weather
+from mysite.weather import get_today_weather
 
 
 def job():
@@ -24,7 +24,7 @@ def job():
     with ApiClient(configuration) as api_client:
         line_bot_api = MessagingApi(api_client)
         for data in send_list:
-            today_weather(
+            get_today_weather(
                 FROM_TASK, line_bot_api, text=data["city"], user_id=data["user"]
             )
 

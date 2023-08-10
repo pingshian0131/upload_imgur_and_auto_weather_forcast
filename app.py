@@ -30,7 +30,7 @@ import errno
 from imgur_python import Imgur
 from linebot.v3.webhooks import TextMessageContent
 
-from mysite.weather import today_weather
+from mysite.weather import get_today_weather
 from config import (
     STATIC_TMP,
     IMGUR_CLIENT_ID,
@@ -134,19 +134,25 @@ def message_text(event):
         line_bot_api = MessagingApi(api_client)
         text = event.message.text
         if "天氣" in text or "weather" in text.lower():
-            today_weather(FROM_APP, line_bot_api, event=event)
+            get_today_weather(FROM_APP, line_bot_api, event=event)
         elif text.lower().find("tarot") > -1:
             r = requests.get(f"{TAROT_FASTAPI}akasha/")
             if r.status_code == 200:
                 resp = r.json()
                 img_url = resp.get("link")
                 app.logger.warning(img_url)
-                line_bot_api.reply_message(
-                    event.reply_token,
-                    ImageMessage(
-                        original_content_url=img_url, preview_image_url=img_url
-                    ),
+                line_bot_api.reply_message_with_http_info(
+                    ReplyMessageRequest(
+                        reply_token=event.reply_token,
+                        messages=[
+                            ImageMessage(
+                                original_content_url=img_url,
+                                preview_image_url=img_url,
+                            ),
+                        ],
+                    )
                 )
+
         else:
             line_bot_api.reply_message_with_http_info(
                 ReplyMessageRequest(
@@ -154,28 +160,6 @@ def message_text(event):
                     messages=[TextMessage(text=event.message.text)],
                 )
             )
-
-
-# @handler.add(MessageEvent, message=TextMessage)
-# def handle_text_msg(event):
-#     app.logger.warning(event)
-#     app.logger.warning(event.message.text)
-#     text = event.message.text
-#     if "天氣" in text or "weather" in text.lower():
-#         today_weather(FROM_APP, event=event)
-#
-#     elif text.lower().find("tarot") > -1:
-#         r = requests.get(f"{TAROT_FASTAPI}akasha/")
-#         if r.status_code == 200:
-#             resp = r.json()
-#             img_url = resp.get("link")
-#             app.logger.warning(img_url)
-#             line_bot_api.reply_message(
-#                 event.reply_token,
-#                 ImageSendMessage(
-#                     original_content_url=img_url, preview_image_url=img_url
-#                 ),
-#             )
 
 
 if __name__ == "__main__":

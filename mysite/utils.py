@@ -7,20 +7,126 @@ from linebot.v3.messaging import (
     StickerMessage,
 )
 
-from config import configuration
+from config import configuration, dict_city
+
+
+def get_city(text: str) -> str:
+
+    city = "台北市"
+    if "新北" in text:
+        city = "新北市"
+    elif "基隆" in text:
+        city = "基隆市"
+    elif "花蓮" in text:
+        city = "花蓮縣"
+    elif "宜蘭" in text:
+        city = "宜蘭縣"
+    elif "金門" in text:
+        city = "金門縣"
+    elif "澎湖" in text:
+        city = "澎湖縣"
+    elif "台南" in text:
+        city = "台南市"
+    elif "高雄" in text:
+        city = "高雄市"
+    elif "嘉義縣" in text:
+        city = "嘉義縣"
+    elif "嘉義市" in text or "嘉義" in text:
+        city = "嘉義市"
+    elif "苗栗" in text:
+        city = "苗栗縣"
+    elif "台中" in text or "臺中" in text:
+        city = "台中市"
+    elif "桃園" in text:
+        city = "桃園市"
+    elif "新竹縣" in text:
+        city = "新竹縣"
+    elif "新竹市" in text or "新竹" in text:
+        city = "新竹市"
+    elif "屏東" in text:
+        city = "屏東縣"
+    elif "南投" in text:
+        city = "南投縣"
+    elif "臺東" in text or "台東" in text:
+        city = "臺東縣"
+    elif "彰化" in text:
+        city = "彰化縣"
+    elif "雲林" in text:
+        city = "雲林縣"
+    elif "連江" in text:
+        city = "連江縣"
+
+    return city
 
 
 class WeatherDataParser:
+    @classmethod
+    def _process_36hrs(cls, city, data):
+        time_start, wx, temper = [], [], []
+
+        issued = data["cwbopendata"]["dataset"]["datasetInfo"]["issueTime"]
+
+        location = data["cwbopendata"]["dataset"]["location"]
+
+        city_weather = location[dict_city.get(city, 0)]
+        weather_elements = city_weather["weatherElement"]
+        w_desc_time = weather_elements[0]["time"]
+        max_t = weather_elements[1]
+        min_t = weather_elements[2]
+
+        for ele in w_desc_time:
+            dt_start = datetime.strptime(ele["startTime"], "%Y-%m-%dT%H:%M:%S%z")
+            time_start.append(dt_start)
+
+        for i in range(len(w_desc_time) - 1):
+            wx.append(w_desc_time[i]["parameter"]["parameterName"])
+            t_msg = "{}°C ~ {}°C".format(
+                min_t["time"][i]["parameter"]["parameterName"],
+                max_t["time"][i]["parameter"]["parameterName"],
+            )
+            temper.append(t_msg)
+
+        return time_start, wx, temper, issued
+
+    @classmethod
+    def _process_helper(cls, data):
+
+        location = data["cwbopendata"]["dataset"]["location"]["locationName"]
+        desc = data["cwbopendata"]["dataset"]["parameterSet"]["parameter"][2][
+            "parameterValue"
+        ]
+        return location, desc
+
+    @classmethod
+    def main(cls, city, data1, data2):
+
+        time_start, wx, temper, issued = cls._process_36hrs(city, data1)
+
+        loc, desc = cls._process_helper(data2)
+
+        return FlexMessageMaker(
+            **{
+                "loc": loc,
+                "time_start": time_start,
+                "temper": temper,
+                "weather": wx,
+                "desc": desc,
+                "issued": issued,
+            }
+        ).run()
+
+
+class FlexMessageMaker:
     """
     weather json data class
     """
 
-    def __init__(self, location, date, temper, weather, comment, issued: str):
-        self.location = location
-        self.date = date
+    def __init__(self, loc, time_start, temper, weather, desc, issued: str):
+        self.loc = loc
+        self.time_start = time_start
         self.temper = temper
         self.weather = weather
-        self.comment = comment
+        self.desc = desc
         self.issued = issued
 
     def _make_weather_box(self):
@@ -71,7 +177,6 @@ class WeatherDataParser:
                 }
             )
 
-        print({"type": "box", "layout": "vertical", "contents": res})
         return {"type": "box", "layout": "vertical", "contents": res}
 
     def _make_dates_box(self):
@@ -92,9 +197,9 @@ class WeatherDataParser:
                 "height": "30px",
             }
         ]
-        for i in range(len(self.date) - 1):
-            start_str = self.date[i].strftime("%m-%d %H:%M")
-            end_str = (self.date[i] + timedelta(hours=12)).strftime("%m-%d %H:%M")
+        for i in range(len(self.time_start) - 1):
+            start_str = self.time_start[i].strftime("%m-%d %H:%M")
+            end_str = (self.time_start[i] + timedelta(hours=12)).strftime("%m-%d %H:%M")
             res.append(
                 {
                     "type": "box",
@@ -140,7 +245,6 @@ class WeatherDataParser:
                 }
             )
 
-        print({"type": "box", "layout": "vertical", "contents": res})
         return {"type": "box", "layout": "vertical", "contents": res}
 
     def _make_temper_box(self):
@@ -191,10 +295,9 @@ class WeatherDataParser:
                 }
             )
 
-        print({"type": "box", "layout": "vertical", "contents": res})
         return {"type": "box", "layout": "vertical", "contents": res}
 
-    def _make_comment_box(self):
+    def _make_desc_box(self):
         return {
             "type": "box",
             "layout": "horizontal",
@@ -211,7 +314,7 @@ class WeatherDataParser:
                 },
                 {
                     "type": "text",
-                    "text": self.comment,
+                    "text": self.desc,
                     "size": "sm",
                     "color": "#8c8c8c",
                     "flex": 2,
@@ -221,7 +324,7 @@ class WeatherDataParser:
             "spacing": "md",
         }
 
-    def make_json(self) -> dict:
+    def run(self) -> dict:
         dt = datetime.strptime(self.issued, "%Y-%m-%dT%H:%M:%S%z")
         last_update_time = f"最後更新時間: {dt.strftime('%Y-%m-%d %H:%M')}"
         return {
@@ -234,7 +337,7 @@ class WeatherDataParser:
                     {"type": "text", "text": "天氣", "color": "#ffffff66", "size": "sm"},
                     {
                         "type": "text",
-                        "text": self.location,
+                        "text": self.loc,
                         "color": "#ffffff",
                         "size": "xl",
                         "weight": "bold",
@@ -265,7 +368,7 @@ class WeatherDataParser:
                                 ],
                                 "flex": 1,
                             },
-                            self._make_comment_box(),
+                            self._make_desc_box(),
                         ],
                         "spacing": "md",
                     },
