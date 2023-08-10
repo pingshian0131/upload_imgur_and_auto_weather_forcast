@@ -1,3 +1,4 @@
+import re
 from datetime import datetime, timedelta
 
 import requests
@@ -16,6 +17,8 @@ from config import (
     FROM_APP,
     OPENWEATHER_URL,
     dict_helper,
+    dict_img,
+    weather_pic,
 )
 from config import OPENWEATHER_TOKEN as TOKEN
 
@@ -137,6 +140,76 @@ class WeatherDataParser:
         return location, desc
 
     @classmethod
+    def _process_18hrs(cls, city, cache_key, _from):
+        data = cache.get(cache_key)
+        if not data:
+            url = f"{OPENWEATHER_URL}F-D0047-089?Authorization={TOKEN}&format=JSON"
+            r = requests.get(url)
+            if r.status_code == 200:
+                data = r.json()
+                cache.set(cache_key, data, 60 * 60)
+                app.logger.warning(data)
+            else:
+                if _from == FROM_APP:
+                    raise Exception("APIServerError: status={}".format(r.status_code))
+
+                else:
+                    app.logger.error("APIServerError: status={}".format(r.status_code))
+
+        dataset = data["cwbopendata"]["dataset"]
+        loc = dataset["locations"]["location"]
+        geocode = dict_img.get(city, "63000000")
+        target = None
+        for i, loc_data in enumerate(loc):
+            if loc_data["geocode"] == geocode:
+                target = loc_data
+        if not target:
+            target = loc[0]
+
+        w_ele = target["weatherElement"]
+        pic_str = w_ele[1]  # 天氣現象
+        temp = w_ele[3]  # 溫度
+        desc = w_ele[6]  # 天氣預報綜合描述 -> 降雨機率
+
+        w_pic = []
+        dt1, dt_main = [], []
+        for ele in pic_str["time"][:7]:
+            dt = datetime.strptime(ele["startTime"], "%Y-%m-%d %H:%M:%S")
+            dt1.append(dt)
+            dt_main.append(dt.hour)
+            w_pic.append(
+                weather_pic.get(
+                    ele["elementValue"][1]["value"], ele["elementValue"][1]["value"]
+                )
+            )
+
+        t = []
+        dt2 = []
+        for ele in temp["time"][:7]:
+            dt = datetime.strptime(ele["dataTime"], "%Y-%m-%d %H:%M:%S")
+            dt2.append(dt)
+            t.append(f"{ele['elementValue'][0]['value']}°C")
+
+        s = []
+        dt3 = []
+        for ele in desc["time"][:7]:
+            dt = datetime.strptime(ele["startTime"], "%Y-%m-%d %H:%M:%S")
+            dt3.append(dt)
+
+            rain_probability_pattern = r"降雨機率 (\d+)%"
+            match = re.search(rain_probability_pattern, ele["elementValue"][0]["value"])
+
+            rain_probability = int(match.group(1)) if match else 0
+            s.append(f"{rain_probability}%")
+
+        if dt1 == dt2 == dt3:
+            m = FlexMessageMaker2("bubble", "giga")
+            m.run(city, dt_main, w_pic, t, s)
+            return m.flex
+        else:
+            raise Exception("Error dt data")
+
+    @classmethod
     def msg1(cls, city, cache_key1, cache_key2, _from):
 
         time_start, wx, temper, issued = cls._process_36hrs(city, cache_key1, _from)
@@ -153,8 +226,8 @@ class WeatherDataParser:
         ).run()
 
     @classmethod
-    def msg2(cls):
-        pass
+    def msg2(cls, city, cache_key3, _from):
+        return cls._process_18hrs(city, cache_key3, _from)
 
 
 class FlexMessageMaker:
@@ -441,6 +514,120 @@ class FlexMessageMaker:
                 "spacing": "xl",
             },
         }
+
+
+class FlexMessageMaker2:
+    def __init__(self, _type, size):
+        self.flex = {
+            "type": _type,
+            "size": size,
+        }
+
+    def __make_body_contents(self, dt_main, w_pic, t, s):
+        res = []
+        for i in range(len(dt_main)):
+            res.append(
+                self.__make_hour_ele(
+                    dt_main[i],
+                    w_pic[i],
+                    t[i],
+                    s[i],
+                )
+            )
+
+    def __make_hour_ele(self, dt_main, pic, t, rate):
+        if int(rate.replace("%")) < 50:
+            ele = {
+                "type": "box",
+                "layout": "vertical",
+                "contents": [
+                    {"type": "text", "text": dt_main, "size": "xs"},
+                    {"type": "filler"},
+                    {"type": "text", "text": pic, "size": "lg"},
+                    {"type": "filler"},
+                    {"type": "text", "text": t, "size": "xxs"},
+                ],
+                "flex": 0,
+                "alignItems": "center",
+            }
+        else:
+            ele = {
+                "type": "box",
+                "layout": "vertical",
+                "contents": [
+                    {"type": "text", "text": dt_main, "size": "xs"},
+                    {"type": "filler"},
+                    {"type": "text", "text": pic, "size": "lg"},
+                    {"type": "text", "text": rate, "size": "xxs"},
+                    {"type": "filler"},
+                    {"type": "text", "text": t, "size": "xxs"},
+                ],
+                "flex": 0,
+                "alignItems": "center",
+            }
+        return ele
+
+    def _make_header(self, city):
+        self.flex["header"] = {
+            "type": "box",
+            "layout": "vertical",
+            "contents": [
+                {
+                    "type": "box",
+                    "layout": "vertical",
+                    "contents": [
+                        {
+                            "type": "text",
+                            "text": "18小時內天氣預報",
+                            "color": "#ffffff66",
+                            "size": "sm",
+                        },
+                        {
+                            "type": "text",
+                            "text": city,
+                            "color": "#ffffff",
+                            "size": "xl",
+                            "flex": 4,
+                            "weight": "bold",
+                        },
+                    ],
+                }
+            ],
+            "paddingAll": "20px",
+            "spacing": "md",
+            "paddingTop": "22px",
+            "backgroundColor": "#0367D3",
+        }
+
+    def _make_body(self, dt_main, w_pic, t, s):
+        self.flex["body"] = {
+            "type": "box",
+            "layout": "vertical",
+            "contents": [
+                {
+                    "type": "box",
+                    "layout": "horizontal",
+                    "contents": [
+                        {
+                            "type": "box",
+                            "layout": "horizontal",
+                            "contents": self.__make_body_contents(dt_main, w_pic, t, s),
+                            "justifyContent": "space-between",
+                            "backgroundColor": "#ECF5FF",
+                            "paddingAll": "lg",
+                        }
+                    ],
+                    "spacing": "lg",
+                    "cornerRadius": "xl",
+                    "margin": "lg",
+                    "height": "120px",
+                }
+            ],
+        }
+
+    def run(self, city, dt_main, w_pic, t, s):
+        self._make_header(city)
+        self._make_body(dt_main, w_pic, t, s)
 
 
 def push_sticker_yo(user_id):
