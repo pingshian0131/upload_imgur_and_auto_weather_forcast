@@ -281,7 +281,7 @@ class FlexMessageMaker(BaseFlexMessageMaker):
     def __init__(self, _type, size):
         super().__init__(_type, size)
 
-    def _make_weather_box(self):
+    def _make_data_box(self, data_type, weather, count):
         res = [
             {
                 "type": "box",
@@ -289,7 +289,7 @@ class FlexMessageMaker(BaseFlexMessageMaker):
                 "contents": [
                     {
                         "type": "text",
-                        "text": "天氣",
+                        "text": data_type,
                         "gravity": "center",
                         "size": "sm",
                         "align": "center",
@@ -299,7 +299,7 @@ class FlexMessageMaker(BaseFlexMessageMaker):
                 "height": "30px",
             }
         ]
-        for i in range(len(self.weather)):
+        for i in range(count):
             res.append(
                 {
                     "type": "box",
@@ -331,7 +331,7 @@ class FlexMessageMaker(BaseFlexMessageMaker):
 
         return {"type": "box", "layout": "vertical", "contents": res}
 
-    def _make_dates_box(self):
+    def _make_dates_box(self, time_start, count):
         res = [
             {
                 "type": "box",
@@ -349,7 +349,7 @@ class FlexMessageMaker(BaseFlexMessageMaker):
                 "height": "30px",
             }
         ]
-        for i in range(len(self.time_start) - 1):
+        for i in range(count):
             start_str = self.time_start[i].strftime("%m-%d %H:%M")
             end_str = (self.time_start[i] + timedelta(hours=12)).strftime("%m-%d %H:%M")
             res.append(
@@ -399,7 +399,7 @@ class FlexMessageMaker(BaseFlexMessageMaker):
 
         return {"type": "box", "layout": "vertical", "contents": res}
 
-    def _make_temper_box(self):
+    def _make_temper_box(self, temper, count):
         res = [
             {
                 "type": "box",
@@ -417,7 +417,7 @@ class FlexMessageMaker(BaseFlexMessageMaker):
                 "height": "30px",
             }
         ]
-        for i in range(len(self.temper)):
+        for i in range(count):
             res.append(
                 {
                     "type": "box",
@@ -449,9 +449,6 @@ class FlexMessageMaker(BaseFlexMessageMaker):
 
         return {"type": "box", "layout": "vertical", "contents": res}
 
-    def __make_desc(self, desc):
-        return
-
     def _header(self, loc, *args, **kwargs):
         self.flex["header"] = self.__box_compo(
             layout=LO_VERTICAL,
@@ -473,7 +470,8 @@ class FlexMessageMaker(BaseFlexMessageMaker):
             },
         )
 
-    def _body(self, desc, *args, **kwargs):
+    def _body(self, time_start, temper, weather, desc, issued, *args, **kwargs):
+        dt = datetime.strptime(issued, "%Y-%m-%dT%H:%M:%S%z")
         self.flex["body"] = (
             {
                 "type": "box",
@@ -537,22 +535,22 @@ class FlexMessageMaker(BaseFlexMessageMaker):
                             "flex": 1,
                         },
                     ),
-                    {
-                        "type": "box",
-                        "layout": "horizontal",
-                        "contents": [
-                            self._make_dates_box(),
-                            self._make_temper_box(),
-                            self._make_weather_box(),
+                    self.__box_compo(
+                        layout=LO_HORIZONTAL,
+                        contents=[
+                            self._make_dates_box("時間", time_start, 3),
+                            self._make_temper_box("氣溫", temper, 3),
+                            self._make_weather_box("天氣", weather, 3),
                         ],
-                    },
-                    {
-                        "type": "text",
-                        "text": last_update_time,
-                        "color": "#b7b7b7",
-                        "size": "xs",
-                        "align": "end",
-                    },
+                    ),
+                    self.__text_compo(
+                        text=f"最後更新時間: {dt.strftime('%Y-%m-%d %H:%M')}",
+                        size=SZ_XS,
+                        **{
+                            "color": "#b7b7b7",
+                            "align": "end",
+                        },
+                    ),
                 ],
                 "spacing": "xl",
             },
@@ -566,9 +564,7 @@ class FlexMessageMaker(BaseFlexMessageMaker):
         # self.desc = desc
         # self.issued = issued
         self._header(loc)
-        self._body(dt_main, w_pic, t, s)
-        dt = datetime.strptime(self.issued, "%Y-%m-%dT%H:%M:%S%z")
-        last_update_time = f"最後更新時間: {dt.strftime('%Y-%m-%d %H:%M')}"
+        self._body(time_start, temper, weather, desc, issued)
         return {
             "type": "bubble",
             "size": "giga",
