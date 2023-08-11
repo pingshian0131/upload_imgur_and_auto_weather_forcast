@@ -8,7 +8,12 @@ from PIL import Image
 import requests
 from flask import request, abort
 from linebot.v3 import WebhookHandler
-from linebot.v3.messaging import AsyncMessagingApiBlob, MessagingApiBlob
+from linebot.v3.messaging import (
+    AsyncMessagingApiBlob,
+    MessagingApiBlob,
+    FlexMessage,
+    FlexContainer,
+)
 from linebot.v3.exceptions import InvalidSignatureError
 from linebot.v3.webhooks import (
     MessageEvent,
@@ -135,6 +140,297 @@ def message_text(event):
         text = event.message.text
         if "天氣" in text or "weather" in text.lower():
             get_today_weather(FROM_APP, line_bot_api, event=event)
+        elif "flex" in text:
+            json_str = """{
+  "type": "bubble",
+  "size": "giga",
+  "header": {
+    "type": "box",
+    "layout": "vertical",
+    "contents": [
+      {
+        "type": "box",
+        "layout": "vertical",
+        "contents": [
+          {
+            "type": "text",
+            "text": "18小時內天氣預報",
+            "color": "#ffffff66",
+            "size": "sm"
+          },
+          {
+            "type": "text",
+            "text": "台北市",
+            "color": "#ffffff",
+            "size": "xl",
+            "flex": 4,
+            "weight": "bold"
+          }
+        ]
+      }
+    ],
+    "paddingAll": "20px",
+    "spacing": "md",
+    "paddingTop": "22px",
+    "backgroundColor": "#0367D3"
+  },
+  "body": {
+    "type": "box",
+    "layout": "vertical",
+    "contents": [
+      {
+        "type": "box",
+        "layout": "horizontal",
+        "contents": [
+          {
+            "type": "box",
+            "layout": "horizontal",
+            "contents": [
+              {
+                "type": "box",
+                "layout": "vertical",
+                "contents": [
+                  {
+                    "type": "text",
+                    "text": "12",
+                    "size": "xs"
+                  },
+                  {
+                    "type": "filler"
+                  },
+                  {
+                    "type": "text",
+                    "text": "☀️",
+                    "size": "lg"
+                  },
+                  {
+                    "type": "filler"
+                  },
+                  {
+                    "type": "text",
+                    "text": "35℃",
+                    "size": "xxs"
+                  }
+                ],
+                "flex": 0,
+                "alignItems": "center"
+              },
+              {
+                "type": "box",
+                "layout": "vertical",
+                "contents": [
+                  {
+                    "type": "text",
+                    "text": "15",
+                    "size": "xs"
+                  },
+                  {
+                    "type": "filler",
+                    "flex": 2
+                  },
+                  {
+                    "type": "text",
+                    "text": "☔",
+                    "size": "lg"
+                  },
+                  {
+                    "type": "filler",
+                    "flex": 1
+                  },
+                  {
+                    "type": "text",
+                    "text": "33℃",
+                    "size": "xxs"
+                  }
+                ],
+                "flex": 0,
+                "alignItems": "center"
+              },
+              {
+                "type": "box",
+                "layout": "vertical",
+                "contents": [
+                  {
+                    "type": "text",
+                    "text": "18",
+                    "size": "xs"
+                  },
+                  {
+                    "type": "filler"
+                  },
+                  {
+                    "type": "text",
+                    "text": "🌥️",
+                    "size": "lg"
+                  },
+                  {
+                    "type": "filler"
+                  },
+                  {
+                    "type": "text",
+                    "text": "31℃",
+                    "size": "xxs"
+                  }
+                ],
+                "flex": 0,
+                "alignItems": "center"
+              },
+              {
+                "type": "box",
+                "layout": "vertical",
+                "contents": [
+                  {
+                    "type": "text",
+                    "text": "21",
+                    "size": "xs"
+                  },
+                  {
+                    "type": "filler"
+                  },
+                  {
+                    "type": "text",
+                    "text": "⛈️",
+                    "size": "lg"
+                  },
+                  {
+                    "type": "text",
+                    "text": "80%",
+                    "size": "xxs"
+                  },
+                  {
+                    "type": "filler"
+                  },
+                  {
+                    "type": "text",
+                    "text": "29℃",
+                    "size": "xxs"
+                  }
+                ],
+                "flex": 0,
+                "alignItems": "center"
+              },
+              {
+                "type": "box",
+                "layout": "vertical",
+                "contents": [
+                  {
+                    "type": "text",
+                    "text": "0",
+                    "size": "xs"
+                  },
+                  {
+                    "type": "filler"
+                  },
+                  {
+                    "type": "text",
+                    "text": "🌤️",
+                    "size": "lg"
+                  },
+                  {
+                    "type": "filler"
+                  },
+                  {
+                    "type": "text",
+                    "text": "27℃",
+                    "size": "xxs"
+                  }
+                ],
+                "flex": 0,
+                "alignItems": "center"
+              },
+              {
+                "type": "box",
+                "layout": "vertical",
+                "contents": [
+                  {
+                    "type": "text",
+                    "text": "3",
+                    "size": "xs"
+                  },
+                  {
+                    "type": "filler"
+                  },
+                  {
+                    "type": "text",
+                    "text": "🌦️",
+                    "size": "lg"
+                  },
+                  {
+                    "type": "text",
+                    "text": "60%",
+                    "size": "xxs"
+                  },
+                  {
+                    "type": "filler"
+                  },
+                  {
+                    "type": "text",
+                    "text": "26℃",
+                    "size": "xxs"
+                  }
+                ],
+                "flex": 0,
+                "alignItems": "center"
+              },
+              {
+                "type": "box",
+                "layout": "vertical",
+                "contents": [
+                  {
+                    "type": "text",
+                    "text": "6",
+                    "size": "xs"
+                  },
+                  {
+                    "type": "filler"
+                  },
+                  {
+                    "type": "text",
+                    "text": "🌩️",
+                    "size": "lg"
+                  },
+                  {
+                    "type": "text",
+                    "text": "50%",
+                    "size": "xxs"
+                  },
+                  {
+                    "type": "filler"
+                  },
+                  {
+                    "type": "text",
+                    "text": "31℃",
+                    "size": "xxs"
+                  }
+                ],
+                "flex": 0,
+                "alignItems": "center"
+              }
+            ],
+            "justifyContent": "space-between",
+            "backgroundColor": "#ECF5FF",
+            "paddingAll": "lg"
+          }
+        ],
+        "spacing": "lg",
+        "cornerRadius": "xl",
+        "margin": "lg",
+        "height": "120px"
+      }
+    ]
+  }
+}"""
+            line_bot_api.reply_message_with_http_info(
+                ReplyMessageRequest(
+                    reply_token=event.reply_token,
+                    messages=[
+                        FlexMessage(
+                            alt_text="test", contents=FlexContainer.from_json(json_str)
+                        ),
+                    ],
+                )
+            )
+
         elif text.lower().find("tarot") > -1:
             r = requests.get(f"{TAROT_FASTAPI}akasha/")
             if r.status_code == 200:

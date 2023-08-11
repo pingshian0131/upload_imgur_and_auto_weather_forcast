@@ -36,7 +36,7 @@ flask_config = {
     "SQLALCHEMY_TRACK_MODIFICATIONS": False,
 }
 
-OPENWEATHER_URL = "https://opendata.cwb.gov.tw/fileapi/v1/opendataapi/"
+OPENWEATHER_URL = "https://opendata.cwb.gov.tw/api/v1/rest/datastore/"
 OPENWEATHER_TOKEN = os.environ.get("OPENWEATHER_TOKEN", "")
 
 TAROT_FASTAPI = os.environ.get("TAROT_FASTAPI", "")

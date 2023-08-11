@@ -167,16 +167,16 @@ class WeatherDataParser:
             target = loc[0]
 
         w_ele = target["weatherElement"]
-        pic_str = w_ele[1]  # 天氣現象
-        temp = w_ele[3]  # 溫度
-        desc = w_ele[6]  # 天氣預報綜合描述 -> 降雨機率
+        pic_str = w_ele[9]  # 天氣現象
+        temp = w_ele[0]  # 溫度
+        desc = w_ele[10]  # 天氣預報綜合描述 -> 降雨機率
 
         w_pic = []
         dt1, dt_main = [], []
         for ele in pic_str["time"][:7]:
-            dt = datetime.strptime(ele["startTime"], "%Y-%m-%d %H:%M:%S")
+            dt = datetime.strptime(ele["startTime"], "%Y-%m-%dT%H:%M:%S%z")
             dt1.append(dt)
-            dt_main.append(dt.hour)
+            dt_main.append(str(dt.hour))
             w_pic.append(
                 weather_pic.get(
                     ele["elementValue"][1]["value"], ele["elementValue"][1]["value"]
@@ -186,21 +186,21 @@ class WeatherDataParser:
         t = []
         dt2 = []
         for ele in temp["time"][:7]:
-            dt = datetime.strptime(ele["dataTime"], "%Y-%m-%d %H:%M:%S")
+            dt = datetime.strptime(ele["dataTime"], "%Y-%m-%dT%H:%M:%S%z")
             dt2.append(dt)
-            t.append(f"{ele['elementValue'][0]['value']}°C")
+            t.append(f"{ele['elementValue']['value']}°C")
 
         s = []
         dt3 = []
         for ele in desc["time"][:7]:
-            dt = datetime.strptime(ele["startTime"], "%Y-%m-%d %H:%M:%S")
+            dt = datetime.strptime(ele["startTime"], "%Y-%m-%dT%H:%M:%S%z")
             dt3.append(dt)
 
-            rain_probability_pattern = r"降雨機率 (\d+)%"
-            match = re.search(rain_probability_pattern, ele["elementValue"][0]["value"])
+            pattern = r"降雨機率 (\d+)%"
+            match = re.search(pattern, ele["elementValue"]["value"])
 
-            rain_probability = int(match.group(1)) if match else 0
-            s.append(f"{rain_probability}%")
+            rate = int(match.group(1)) if match else 0
+            s.append(rate)
 
         if dt1 == dt2 == dt3:
             m = FlexMessageMaker2("bubble", "giga")
@@ -230,18 +230,56 @@ class WeatherDataParser:
         return cls._process_18hrs(city, cache_key3, _from)
 
 
-class FlexMessageMaker:
+LO_BASELINE = "baseline"
+LO_HORIZONTAL = "horizontal"
+LO_VERTICAL = "vertical"
+
+SZ_NONE = "none"
+SZ_XXS = "xxs"
+SZ_XS = "xs"
+SZ_SM = "sm"
+SZ_MD = "md"
+SZ_LG = "lg"
+SZ_XL = "xl"
+SZ_XXL = "xxl"
+
+
+class BaseFlexMessageMaker:
+    def __init__(self, _type, size):
+        self.flex = {
+            "type": _type,
+            "size": size,
+        }
+
+    @staticmethod
+    def __text_compo(text: str, size=SZ_MD, **kwargs):
+        return {"type": "text", "text": text, "size": size, **kwargs}
+
+    @staticmethod
+    def __box_compo(layout: str, contents: list, **kwargs):
+        return {"type": "box", "layout": layout, "contents": contents, **kwargs}
+
+    @staticmethod
+    def __filler():
+        return {"type": "filler"}
+
+    def _header(self, *args, **kwargs):
+        raise NotImplementedError
+
+    def _body(self, *args, **kwargs):
+        raise NotImplementedError
+
+    def run(self, *args, **kwargs):
+        raise NotImplementedError
+
+
+class FlexMessageMaker(BaseFlexMessageMaker):
     """
     weather json data class
     """
 
-    def __init__(self, loc, time_start, temper, weather, desc, issued: str):
-        self.loc = loc
-        self.time_start = time_start
-        self.temper = temper
-        self.weather = weather
-        self.desc = desc
-        self.issued = issued
+    def __init__(self, _type, size):
+        super().__init__(_type, size)
 
     def _make_weather_box(self):
         res = [
@@ -411,34 +449,124 @@ class FlexMessageMaker:
 
         return {"type": "box", "layout": "vertical", "contents": res}
 
-    def _make_desc_box(self):
-        return {
-            "type": "box",
-            "layout": "horizontal",
-            "contents": [
-                {
-                    "type": "box",
-                    "layout": "vertical",
-                    "contents": [{"type": "filler"}],
-                    "cornerRadius": "30px",
-                    "width": "12px",
-                    "height": "12px",
-                    "borderWidth": "2px",
-                    "borderColor": "#6486E3",
-                },
-                {
-                    "type": "text",
-                    "text": self.desc,
-                    "size": "sm",
-                    "color": "#8c8c8c",
-                    "flex": 2,
-                    "wrap": True,
-                },
-            ],
-            "spacing": "md",
-        }
+    def __make_desc(self, desc):
+        return
 
-    def run(self) -> dict:
+    def _header(self, loc, *args, **kwargs):
+        self.flex["header"] = self.__box_compo(
+            layout=LO_VERTICAL,
+            contents=[
+                self.__text_compo(text="天氣", size=SZ_SM),
+                self.__text_compo(
+                    text=loc,
+                    size=SZ_XL,
+                    **{
+                        "color": "#ffffff",
+                        "weight": "bold",
+                    },
+                ),
+            ],
+            **{
+                "paddingAll": "20px",
+                "backgroundColor": "#0367D3",
+                "paddingTop": "22px",
+            },
+        )
+
+    def _body(self, desc, *args, **kwargs):
+        self.flex["body"] = (
+            {
+                "type": "box",
+                "layout": "vertical",
+                "contents": [
+                    self.__box_compo(
+                        layout=LO_VERTICAL,
+                        contents=[
+                            self.__box_compo(
+                                layout=LO_HORIZONTAL,
+                                contents=[
+                                    self.__text_compo(
+                                        text="天氣概況",
+                                        size=SZ_SM,
+                                        **{
+                                            "gravity": "center",
+                                        },
+                                    ),
+                                ],
+                                **{
+                                    "flex": 1,
+                                },
+                            ),
+                            self.__box_compo(
+                                layout=LO_HORIZONTAL,
+                                contents=[
+                                    self.__box_compo(
+                                        layout=LO_VERTICAL,
+                                        contents=[self.__filler()],
+                                        **{
+                                            "cornerRadius": "30px",
+                                            "width": "12px",
+                                            "height": "12px",
+                                            "borderWidth": "2px",
+                                            "borderColor": "#6486E3",
+                                        },
+                                    ),
+                                    self.__text_compo(
+                                        text=desc,
+                                        size=SZ_SM,
+                                        **{
+                                            "color": "#8c8c8c",
+                                            "flex": 2,
+                                            "wrap": True,
+                                        },
+                                    ),
+                                ],
+                                **{
+                                    "spacing": SZ_MD,
+                                },
+                            ),
+                        ],
+                        **{
+                            "spacing": SZ_MD,
+                        },
+                    ),
+                    self.__box_compo(
+                        layout=LO_HORIZONTAL,
+                        contents=[self.__text_compo(text="今明24小時天氣預報預報", size=SZ_SM)],
+                        **{
+                            "flex": 1,
+                        },
+                    ),
+                    {
+                        "type": "box",
+                        "layout": "horizontal",
+                        "contents": [
+                            self._make_dates_box(),
+                            self._make_temper_box(),
+                            self._make_weather_box(),
+                        ],
+                    },
+                    {
+                        "type": "text",
+                        "text": last_update_time,
+                        "color": "#b7b7b7",
+                        "size": "xs",
+                        "align": "end",
+                    },
+                ],
+                "spacing": "xl",
+            },
+        )
+
+    def run(self, loc, time_start, temper, weather, desc, issued: str) -> dict:
+        # self.loc = loc
+        # self.time_start = time_start
+        # self.temper = temper
+        # self.weather = weather
+        # self.desc = desc
+        # self.issued = issued
+        self._header(loc)
+        self._body(dt_main, w_pic, t, s)
         dt = datetime.strptime(self.issued, "%Y-%m-%dT%H:%M:%S%z")
         last_update_time = f"最後更新時間: {dt.strftime('%Y-%m-%d %H:%M')}"
         return {
@@ -516,118 +644,114 @@ class FlexMessageMaker:
         }
 
 
-class FlexMessageMaker2:
+class FlexMessageMaker2(BaseFlexMessageMaker):
     def __init__(self, _type, size):
-        self.flex = {
-            "type": _type,
-            "size": size,
-        }
+        super().__init__(_type, size)
 
-    def __make_body_contents(self, dt_main, w_pic, t, s):
-        res = []
-        for i in range(len(dt_main)):
-            res.append(
-                self.__make_hour_ele(
-                    dt_main[i],
-                    w_pic[i],
-                    t[i],
-                    s[i],
-                )
-            )
+    def __make_hour_ele(self, dt: str, pic: str, t: str, rate: int):
 
-    def __make_hour_ele(self, dt_main, pic, t, rate):
-        if int(rate.replace("%")) < 50:
-            ele = {
-                "type": "box",
-                "layout": "vertical",
-                "contents": [
-                    {"type": "text", "text": dt_main, "size": "xs"},
-                    {"type": "filler"},
-                    {"type": "text", "text": pic, "size": "lg"},
-                    {"type": "filler"},
-                    {"type": "text", "text": t, "size": "xxs"},
-                ],
-                "flex": 0,
-                "alignItems": "center",
-            }
+        if rate < 50:
+            contents = [
+                self.__text_compo(text=dt, size=SZ_XS),
+                self.__filler(),
+                self.__text_compo(text=pic, size=SZ_LG),
+                self.__filler(),
+                self.__text_compo(text=t, size=SZ_XXS),
+            ]
         else:
-            ele = {
-                "type": "box",
-                "layout": "vertical",
-                "contents": [
-                    {"type": "text", "text": dt_main, "size": "xs"},
-                    {"type": "filler"},
-                    {"type": "text", "text": pic, "size": "lg"},
-                    {"type": "text", "text": rate, "size": "xxs"},
-                    {"type": "filler"},
-                    {"type": "text", "text": t, "size": "xxs"},
-                ],
+            contents = [
+                self.__text_compo(text=dt, size=SZ_XS),
+                self.__filler(),
+                self.__text_compo(text=pic, size=SZ_LG),
+                self.__text_compo(text=f"{rate}%", size=SZ_XXS),
+                self.__filler(),
+                self.__text_compo(text=t, size=SZ_XXS),
+            ]
+
+        return self.__box_compo(
+            layout=LO_VERTICAL,
+            contents=contents,
+            **{
                 "flex": 0,
                 "alignItems": "center",
-            }
-        return ele
+            },
+        )
 
-    def _make_header(self, city):
-        self.flex["header"] = {
-            "type": "box",
-            "layout": "vertical",
-            "contents": [
-                {
-                    "type": "box",
-                    "layout": "vertical",
-                    "contents": [
-                        {
-                            "type": "text",
-                            "text": "18小時內天氣預報",
-                            "color": "#ffffff66",
-                            "size": "sm",
-                        },
-                        {
-                            "type": "text",
-                            "text": city,
-                            "color": "#ffffff",
-                            "size": "xl",
-                            "flex": 4,
-                            "weight": "bold",
-                        },
+    def _header(self, city):
+        self.flex["header"] = self.__box_compo(
+            layout=LO_VERTICAL,
+            contents=[
+                self.__box_compo(
+                    layout=LO_VERTICAL,
+                    contents=[
+                        self.__text_compo(
+                            text="18小時內天氣預報",
+                            size=SZ_SM,
+                            **{
+                                "color": "#ffffff66",
+                            },
+                        ),
+                        self.__text_compo(
+                            text=city,
+                            size=SZ_XL,
+                            **{
+                                "text": city,
+                                "color": "#ffffff",
+                                "flex": 4,
+                                "weight": "bold",
+                            },
+                        ),
                     ],
-                }
+                ),
             ],
-            "paddingAll": "20px",
-            "spacing": "md",
-            "paddingTop": "22px",
-            "backgroundColor": "#0367D3",
-        }
+            **{
+                "paddingAll": "20px",
+                "spacing": SZ_MD,
+                "paddingTop": "22px",
+                "backgroundColor": "#0367D3",
+            },
+        )
 
-    def _make_body(self, dt_main, w_pic, t, s):
-        self.flex["body"] = {
-            "type": "box",
-            "layout": "vertical",
-            "contents": [
-                {
-                    "type": "box",
-                    "layout": "horizontal",
-                    "contents": [
-                        {
-                            "type": "box",
-                            "layout": "horizontal",
-                            "contents": self.__make_body_contents(dt_main, w_pic, t, s),
-                            "justifyContent": "space-between",
-                            "backgroundColor": "#ECF5FF",
-                            "paddingAll": "lg",
-                        }
+    def _body(self, dt_main: list[str], w_pic: list[str], t: list[str], s: list[int]):
+        self.flex["body"] = self.__box_compo(
+            layout=LO_VERTICAL,
+            contents=[
+                self.__box_compo(
+                    layout=LO_HORIZONTAL,
+                    contents=[
+                        self.__box_compo(
+                            layout=LO_HORIZONTAL,
+                            contents=[
+                                self.__make_hour_ele(dt_main[i], w_pic[i], t[i], s[i])
+                                for i in range(len(dt_main))
+                            ],
+                            **{
+                                "justifyContent": "space-between",
+                                "backgroundColor": "#ECF5FF",
+                                "paddingAll": SZ_LG,
+                            },
+                        )
                     ],
-                    "spacing": "lg",
-                    "cornerRadius": "xl",
-                    "margin": "lg",
-                    "height": "120px",
-                }
+                    **{
+                        "spacing": SZ_LG,
+                        "cornerRadius": SZ_XL,
+                        "margin": SZ_LG,
+                        "height": "120px",
+                    },
+                )
             ],
-        }
+        )
 
-    def run(self, city, dt_main, w_pic, t, s):
-        self._make_header(city)
-        self._make_body(dt_main, w_pic, t, s)
+    def run(
+        self,
+        city: str,
+        dt_main: list[str],
+        w_pic: list[str],
+        t: list[str],
+        s: list[int],
+    ) -> None:
+        self._header(city)
+        self._body(dt_main, w_pic, t, s)
 
 
 def push_sticker_yo(user_id):
