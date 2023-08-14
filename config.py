@@ -39,9 +39,7 @@ flask_config = {
 
 OPENWEATHER_REST_API = "https://opendata.cwb.gov.tw/api/v1/rest/datastore/"
 OPENWEATHER_FILE_API = "https://opendata.cwb.gov.tw/fileapi/v1/opendataapi/"
-OPENWEATHER_TOKEN = os.environ.get(
-    "OPENWEATHER_TOKEN", ""
-)
+OPENWEATHER_TOKEN = os.environ.get("OPENWEATHER_TOKEN", "")
 
 TAROT_FASTAPI = os.environ.get("TAROT_FASTAPI", "")
 
