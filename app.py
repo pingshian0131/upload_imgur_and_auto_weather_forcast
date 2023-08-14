@@ -29,13 +29,10 @@ from linebot.v3.messaging import (
     ImageMessage,
 )
 
-# from model import *
-import tempfile
-import errno
 from imgur_python import Imgur
 from linebot.v3.webhooks import TextMessageContent
 
-from mysite.weather import get_today_weather
+from mysite.weather import get_today_weather, query_18hrs_weather
 from config import (
     STATIC_TMP,
     IMGUR_CLIENT_ID,
@@ -139,7 +136,8 @@ def message_text(event):
         line_bot_api = MessagingApi(api_client)
         text = event.message.text
         if "天氣" in text or "weather" in text.lower():
-            get_today_weather(FROM_APP, line_bot_api, event=event)
+            # get_today_weather(FROM_APP, line_bot_api, event=event)
+            query_18hrs_weather(line_bot_api, event)
         elif "flex" in text:
             json_str = """{
   "type": "bubble",

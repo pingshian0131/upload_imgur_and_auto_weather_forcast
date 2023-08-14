@@ -1,4 +1,5 @@
 import os
+from enum import Enum
 
 from flask import Flask
 from flask_caching import Cache
@@ -36,8 +37,11 @@ flask_config = {
     "SQLALCHEMY_TRACK_MODIFICATIONS": False,
 }
 
-OPENWEATHER_URL = "https://opendata.cwb.gov.tw/api/v1/rest/datastore/"
-OPENWEATHER_TOKEN = os.environ.get("OPENWEATHER_TOKEN", "")
+OPENWEATHER_REST_API = "https://opendata.cwb.gov.tw/api/v1/rest/datastore/"
+OPENWEATHER_FILE_API = "https://opendata.cwb.gov.tw/fileapi/v1/opendataapi/"
+OPENWEATHER_TOKEN = os.environ.get(
+    "OPENWEATHER_TOKEN", ""
+)
 
 TAROT_FASTAPI = os.environ.get("TAROT_FASTAPI", "")
 
@@ -46,34 +50,9 @@ FROM_TASK = 1
 
 app = Flask(__name__)
 
-# db = SQLAlchemy()
 app.config.from_mapping(flask_config)
 cache = Cache(app)
 
-dict_city = {
-    "台北市": 0,
-    "新北市": 1,
-    "基隆市": 6,
-    "花蓮縣": 17,
-    "宜蘭縣": 16,
-    "金門縣": 20,
-    "澎湖縣": 19,
-    "台南市": 4,
-    "高雄市": 5,
-    "嘉義縣": 13,
-    "嘉義市": 14,
-    "苗栗縣": 9,
-    "台中市": 3,
-    "桃園市": 2,
-    "新竹縣": 7,
-    "新竹市": 8,
-    "屏東縣": 15,
-    "南投縣": 11,
-    "臺東縣": 18,
-    "彰化縣": 10,
-    "雲林縣": 12,
-    "連江縣": 21,
-}
 dict_helper = {
     "台北市": "009",
     "新北市": "010",
@@ -97,30 +76,6 @@ dict_helper = {
     "彰化縣": "028",
     "雲林縣": "029",
     "連江縣": "030",
-}
-dict_img = {
-    "台北市": "63000000",
-    "新北市": "65000000",
-    "基隆市": "10017000",
-    "花蓮縣": "10015000",
-    "宜蘭縣": "10002000",
-    "金門縣": "09020000",
-    "澎湖縣": "10016000",
-    "台南市": "67000000",
-    "高雄市": "64000000",
-    "嘉義縣": "10010000",
-    "嘉義市": "10020000",
-    "苗栗縣": "10005000",
-    "台中市": "66000000",
-    "桃園市": "68000000",
-    "新竹縣": "10004000",
-    "新竹市": "10018000",
-    "屏東縣": "10013000",
-    "南投縣": "10008000",
-    "臺東縣": "10014000",
-    "彰化縣": "10007000",
-    "雲林縣": "10009000",
-    "連江縣": "09007000",
 }
 
 weather_pic = {
@@ -157,3 +112,20 @@ weather_pic = {
     "31": "🌧️",
     "42": "❄️",
 }
+
+
+class LAYOUT(str, Enum):
+    BASELINE = "baseline"
+    HORIZONTAL = "horizontal"
+    VERTICAL = "vertical"
+
+
+class SIZE(Enum):
+    NONE = "none"
+    XXS = "xxs"
+    XS = "xs"
+    SM = "sm"
+    MD = "md"
+    LG = "lg"
+    XL = "xl"
+    XXL = "xxl"
